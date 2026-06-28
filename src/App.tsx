@@ -216,6 +216,7 @@ export default function App() {
 
   // ADMIN STATE
   const [isAdminPage, setIsAdminPage] = useState<boolean>(false);
+  const [showServerSettings, setShowServerSettings] = useState<boolean>(false);
   const [serverConfig, setServerConfig] = useState({
     host: 'http://vo5px.top',
     username: '5252761676',
@@ -279,11 +280,27 @@ export default function App() {
   const [allLiveChannels, setAllLiveChannels] = useState<any[]>([]);
   const [isLoadingAllLiveChannels, setIsLoadingAllLiveChannels] = useState<boolean>(false);
 
-  // Fetch all live channels on admin mount for direct dropdown selection
+  // Auto-scroll to override-editor-form when a channel/VOD is selected for editing
+  useEffect(() => {
+    if (overrideId) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById('override-editor-form');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [overrideId]);
+
+  // Fetch all live channels when admin page is loaded or when matchSelectedCategory changes
   useEffect(() => {
     if (!isAdminPage) return;
     setIsLoadingAllLiveChannels(true);
-    fetch('/api/iptv/streams?type=live&page=1&limit=1500')
+    const categoryQuery = matchSelectedCategory && matchSelectedCategory !== 'all' 
+      ? `&category_id=${matchSelectedCategory}` 
+      : '';
+    fetch(`/api/iptv/streams?type=live&page=1&limit=5000${categoryQuery}`)
       .then(res => res.json())
       .then(data => {
         if (!data.error && Array.isArray(data.items)) {
@@ -297,7 +314,7 @@ export default function App() {
         console.error('Failed to fetch all live channels for dropdown selection:', err);
         setIsLoadingAllLiveChannels(false);
       });
-  }, [isAdminPage]);
+  }, [isAdminPage, matchSelectedCategory]);
 
   // Admin Live Categories Fetch
   useEffect(() => {
@@ -555,6 +572,7 @@ export default function App() {
           setConfigMessage({ type: 'error', text: data.message || 'فشل حفظ الإعدادات' });
         } else {
           setServerConfig(data.config);
+          setShowServerSettings(false);
           setConfigMessage({ type: 'success', text: 'تم حفظ إعدادات السيرفر بنجاح وجاري تحديث قائمة القنوات والاشتراك!' });
           
           // Re-fetch IPTV subscription info
@@ -960,161 +978,220 @@ export default function App() {
               <div className="lg:col-span-5 space-y-8">
                 
                 {/* Server settings card */}
-                <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
-                  <h2 className="text-sm font-black text-white mb-4 flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-cyan-400" />
-                    <span>إعدادات الاتصال بسيرفر IPTV</span>
-                  </h2>
-                  
-                  <form onSubmit={handleSaveConfig} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط السيرفر (Host URL)</label>
-                      <input
-                        type="url"
-                        value={adminHost}
-                        onChange={(e) => setAdminHost(e.target.value)}
-                        placeholder="مثال: http://vo5px.top"
-                        required
-                        className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
-                        dir="ltr"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">اسم المستخدم</label>
-                        <input
-                          type="text"
-                          value={adminUser}
-                          onChange={(e) => setAdminUser(e.target.value)}
-                          placeholder="Username"
-                          required
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
-                          dir="ltr"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">كلمة المرور</label>
-                        <input
-                          type="text"
-                          value={adminPass}
-                          onChange={(e) => setAdminPass(e.target.value)}
-                          placeholder="Password"
-                          required
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
-                          dir="ltr"
-                        />
-                      </div>
-                    </div>
+                 <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl transition-all duration-300">
+                   <div className="flex items-center justify-between mb-4">
+                     <h2 className="text-sm font-black text-white flex items-center gap-2">
+                       <Sliders className="w-4 h-4 text-cyan-400" />
+                       <span>إعدادات الاتصال بسيرفر IPTV</span>
+                     </h2>
+                     
+                     {!showServerSettings && (
+                       <button
+                         type="button"
+                         onClick={() => setShowServerSettings(true)}
+                         className="px-3 py-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-extrabold text-xs transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                       >
+                         <Edit className="w-3.5 h-3.5" />
+                         <span>تعديل</span>
+                       </button>
+                     )}
+                   </div>
+                   
+                   {!showServerSettings ? (
+                     <div className="space-y-3.5">
+                       <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
+                         <div className="flex items-center justify-between text-xs">
+                           <span className="text-gray-400">رابط السيرفر:</span>
+                           <span className="font-mono text-cyan-400 font-semibold text-left select-all" dir="ltr">
+                             {serverConfig.host || 'غير محدد'}
+                           </span>
+                         </div>
+                         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2.5">
+                           <span className="text-gray-400">اسم المستخدم:</span>
+                           <span className="font-mono text-gray-200 font-semibold text-left select-all" dir="ltr">
+                             {serverConfig.username || 'غير محدد'}
+                           </span>
+                         </div>
+                         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2.5">
+                           <span className="text-gray-400">كلمة المرور:</span>
+                           <span className="font-mono text-gray-400 font-semibold text-left" dir="ltr">
+                             ••••••••
+                           </span>
+                         </div>
+                       </div>
 
-                    {configMessage && (
-                      <div className={`p-3.5 rounded-xl text-xs font-bold border ${
-                        configMessage.type === 'success' 
-                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                          : 'bg-red-500/10 border-red-500/20 text-red-400'
-                      }`}>
-                        {configMessage.text}
-                      </div>
-                    )}
+                       {configMessage && (
+                         <div className={`p-3.5 rounded-xl text-xs font-bold border ${
+                           configMessage.type === 'success' 
+                             ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                             : 'bg-red-500/10 border-red-500/20 text-red-400'
+                         }`}>
+                           {configMessage.text}
+                         </div>
+                       )}
+                     </div>
+                   ) : (
+                     <form onSubmit={handleSaveConfig} className="space-y-4">
+                       <div>
+                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط السيرفر (Host URL)</label>
+                         <input
+                           type="url"
+                           value={adminHost}
+                           onChange={(e) => setAdminHost(e.target.value)}
+                           placeholder="مثال: http://vo5px.top"
+                           required
+                           className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
+                           dir="ltr"
+                         />
+                       </div>
+                       
+                       <div className="grid grid-cols-2 gap-3">
+                         <div>
+                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">اسم المستخدم</label>
+                           <input
+                             type="text"
+                             value={adminUser}
+                             onChange={(e) => setAdminUser(e.target.value)}
+                             placeholder="Username"
+                             required
+                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
+                             dir="ltr"
+                           />
+                         </div>
+                         <div>
+                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">كلمة المرور</label>
+                           <input
+                             type="text"
+                             value={adminPass}
+                             onChange={(e) => setAdminPass(e.target.value)}
+                             placeholder="Password"
+                             required
+                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
+                             dir="ltr"
+                           />
+                         </div>
+                       </div>
+ 
+                       {configMessage && (
+                         <div className={`p-3.5 rounded-xl text-xs font-bold border ${
+                           configMessage.type === 'success' 
+                             ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                             : 'bg-red-500/10 border-red-500/20 text-red-400'
+                         }`}>
+                           {configMessage.text}
+                         </div>
+                       )}
+ 
+                       <div className="flex gap-2.5 pt-1.5">
+                         <button
+                           type="button"
+                           onClick={() => setShowServerSettings(false)}
+                           className="flex-1 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 font-extrabold text-xs transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
+                         >
+                           إلغاء
+                         </button>
+                         <button
+                           type="submit"
+                           disabled={isSavingConfig}
+                           className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                         >
+                           {isSavingConfig ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : null}
+                           <span>حفظ الإعدادات وتحديث الاتصال</span>
+                         </button>
+                       </div>
+                     </form>
+                   )}
+                 </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSavingConfig}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
-                    >
-                      {isSavingConfig ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : null}
-                      <span>حفظ الإعدادات وتحديث الاتصال</span>
-                    </button>
-                  </form>
-                </div>
+                 {/* Override items customization card */}
+                 {overrideId && (
+                   <div id="override-editor-form" className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl animate-fade-in">
+                     <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
+                       <Plus className="w-4 h-4 text-fuchsia-400" />
+                       <span>تخصيص وتعديل قنوات وبث السيرفر</span>
+                     </h2>
+                     <p className="text-[10px] text-gray-400 mb-4 leading-relaxed">
+                       ادخل معرف القناة (Stream ID) لتعديل الاسم، شعار القناة، أو وضع رابط بث خارجي بديل لتشغيلها بشكل مباشر.
+                     </p>
 
-                {/* Override items customization card */}
-                <div id="override-editor-form" className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
-                  <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-fuchsia-400" />
-                    <span>تخصيص وتعديل قنوات وبث السيرفر</span>
-                  </h2>
-                  <p className="text-[10px] text-gray-400 mb-4 leading-relaxed">
-                    ادخل معرف القناة (Stream ID) لتعديل الاسم، شعار القناة، أو وضع رابط بث خارجي بديل لتشغيلها بشكل مباشر.
-                  </p>
+                     <form onSubmit={handleSaveOverride} className="space-y-4">
+                       <div className="grid grid-cols-3 gap-3">
+                         <div className="col-span-1">
+                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">معرف المادة *</label>
+                           <input
+                             type="text"
+                             value={overrideId}
+                             onChange={(e) => setOverrideId(e.target.value)}
+                             placeholder="مثال: 54101"
+                             required
+                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                             dir="ltr"
+                           />
+                         </div>
+                         <div className="col-span-2">
+                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">الاسم البديل المخصص</label>
+                           <input
+                             type="text"
+                             value={overrideName}
+                             onChange={(e) => setOverrideName(e.target.value)}
+                             placeholder="مثال: اسم القناة البديل"
+                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                           />
+                         </div>
+                       </div>
 
-                  <form onSubmit={handleSaveOverride} className="space-y-4">
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="col-span-1">
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">معرف المادة *</label>
-                        <input
-                          type="text"
-                          value={overrideId}
-                          onChange={(e) => setOverrideId(e.target.value)}
-                          placeholder="مثال: 54101"
-                          required
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
-                          dir="ltr"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">الاسم البديل المخصص</label>
-                        <input
-                          type="text"
-                          value={overrideName}
-                          onChange={(e) => setOverrideName(e.target.value)}
-                          placeholder="مثال: مكة المكرمة مباشر HD"
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </div>
+                       <div>
+                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط الشعار المخصص (Logo URL)</label>
+                         <input
+                           type="url"
+                           value={overrideIcon}
+                           onChange={(e) => setOverrideIcon(e.target.value)}
+                           placeholder="https://example.com/logo.png"
+                           className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                           dir="ltr"
+                         />
+                       </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط الشعار المخصص (Logo URL)</label>
-                      <input
-                        type="url"
-                        value={overrideIcon}
-                        onChange={(e) => setOverrideIcon(e.target.value)}
-                        placeholder="https://example.com/logo.png"
-                        className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
-                        dir="ltr"
-                      />
-                    </div>
+                       <div>
+                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط البث البديل (Stream Link / M3U8)</label>
+                         <input
+                           type="url"
+                           value={overrideStreamUrl}
+                           onChange={(e) => setOverrideStreamUrl(e.target.value)}
+                           placeholder="https://example.com/stream.m3u8"
+                           className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                           dir="ltr"
+                         />
+                       </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط البث البديل (Stream Link / M3U8)</label>
-                      <input
-                        type="url"
-                        value={overrideStreamUrl}
-                        onChange={(e) => setOverrideStreamUrl(e.target.value)}
-                        placeholder="https://example.com/stream.m3u8"
-                        className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
-                        dir="ltr"
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        disabled={isSavingOverride || !overrideId}
-                        className="flex-grow py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-600 hover:from-fuchsia-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
-                      >
-                        {isSavingOverride ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                        <span>حفظ التعديل والمزامنة</span>
-                      </button>
-                      
-                      {overrideId && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOverrideId('');
-                            setOverrideName('');
-                            setOverrideIcon('');
-                            setOverrideStreamUrl('');
-                          }}
-                          className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold text-xs transition-all duration-300 cursor-pointer"
-                        >
-                          إلغاء
-                        </button>
-                      )}
-                    </div>
-                  </form>
-                </div>
+                       <div className="flex gap-2">
+                         <button
+                           type="submit"
+                           disabled={isSavingOverride || !overrideId}
+                           className="flex-grow py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-600 hover:from-fuchsia-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                         >
+                           {isSavingOverride ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                           <span>حفظ التعديل والمزامنة</span>
+                         </button>
+                         
+                         {overrideId && (
+                           <button
+                             type="button"
+                             onClick={() => {
+                               setOverrideId('');
+                               setOverrideName('');
+                               setOverrideIcon('');
+                               setOverrideStreamUrl('');
+                             }}
+                             className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold text-xs transition-all duration-300 cursor-pointer"
+                           >
+                             إلغاء
+                           </button>
+                         )}
+                       </div>
+                     </form>
+                   </div>
+                 )}
 
                 {/* Match Creator Form */}
                 <div id="match-editor-form" className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl mt-6">
@@ -1298,120 +1375,6 @@ export default function App() {
                           )}
                         </div>
                       </div>
-
-                      <div className="relative flex py-1 items-center">
-                        <div className="flex-grow border-t border-white/5"></div>
-                        <span className="flex-shrink mx-3 text-[10px] text-gray-500 font-bold">أو</span>
-                        <div className="flex-grow border-t border-white/5"></div>
-                      </div>
-
-                      {/* Interactive Selection from Dropdown List */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">ابحث بالاسم إذا لم تجدها في القائمة المنسدلة:</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={matchChannelSearchQuery}
-                            onChange={(e) => handleMatchChannelSearch(e.target.value)}
-                            onFocus={() => setShowMatchChannelDropdown(true)}
-                            placeholder="اكتب اسم القناة هنا للبحث والاختيار المباشر... (مثال: beIN)"
-                            className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors pr-9 pl-14 text-right"
-                            dir="rtl"
-                          />
-                          <Search className="w-4 h-4 text-gray-500 absolute right-3 top-3.5" />
-                          
-                          {matchChannelSearchQuery && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setMatchChannelSearchQuery('');
-                                setMatchChannelSearchResults([]);
-                                setShowMatchChannelDropdown(false);
-                              }}
-                              className="absolute left-3 top-3 bg-white/10 hover:bg-white/20 text-white rounded-lg px-2 py-1 text-[10px] font-bold transition-all cursor-pointer"
-                            >
-                              إلغاء
-                            </button>
-                          )}
-
-                          {showMatchChannelDropdown && (matchChannelSearchQuery.trim() || isSearchingMatchChannels) && (
-                            <div className="absolute z-50 left-0 right-0 mt-1 bg-[#090d16] border border-white/10 rounded-xl shadow-2xl max-h-[220px] overflow-y-auto divide-y divide-white/5">
-                              {isSearchingMatchChannels ? (
-                                <div className="p-4 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
-                                  <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-                                  <span>جاري البحث عن القناة...</span>
-                                </div>
-                              ) : matchChannelSearchResults.length === 0 ? (
-                                <div className="p-4 text-center text-xs text-gray-500">
-                                  لا توجد قنوات تطابق هذا الاسم.
-                                </div>
-                              ) : (
-                                matchChannelSearchResults.map((ch) => {
-                                  const idStr = String(ch.stream_id || '');
-                                  const iconStr = ch.stream_icon || '';
-                                  return (
-                                    <button
-                                      key={idStr}
-                                      type="button"
-                                      onClick={() => {
-                                        setMatchChannelId(idStr);
-                                        setMatchChannelName(ch.name);
-                                        setMatchChannelSearchQuery('');
-                                        setMatchChannelSearchResults([]);
-                                        setShowMatchChannelDropdown(false);
-                                      }}
-                                      className="w-full text-right px-4 py-3 hover:bg-white/5 flex items-center justify-between gap-3 text-xs transition-colors cursor-pointer"
-                                    >
-                                      <div className="flex items-center gap-2.5 truncate">
-                                        {iconStr ? (
-                                          <img src={iconStr} alt="" className="w-6 h-6 rounded object-cover border border-white/10 flex-shrink-0" referrerPolicy="no-referrer" />
-                                        ) : (
-                                          <div className="w-6 h-6 bg-white/10 rounded flex items-center justify-center text-[9px] flex-shrink-0">📺</div>
-                                        )}
-                                        <span className="font-extrabold text-gray-200 truncate">{ch.name}</span>
-                                      </div>
-                                      <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/20 font-bold">ربط القناة</span>
-                                    </button>
-                                  );
-                                })
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 pt-1">
-                        <div>
-                          <label className="block text-[10px] text-gray-500 mb-1">معرف القناة المرتبط (Channel ID)</label>
-                          <input
-                            type="text"
-                            value={matchChannelId}
-                            onChange={(e) => setMatchChannelId(e.target.value)}
-                            placeholder="لم يتم اختيار قناة بعد"
-                            required
-                            readOnly
-                            className="w-full px-4 py-2.5 bg-black/60 border border-white/5 rounded-xl text-xs text-gray-400 text-left cursor-not-allowed"
-                            dir="ltr"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-gray-500 mb-1">اسم القناة المحدد</label>
-                          <input
-                            type="text"
-                            value={matchChannelName}
-                            onChange={(e) => setMatchChannelName(e.target.value)}
-                            placeholder="لم يتم تحديد قناة"
-                            required
-                            readOnly
-                            className="w-full px-4 py-2.5 bg-black/60 border border-white/5 rounded-xl text-xs text-gray-400 cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Info on how to select channel */}
-                      <p className="text-[10px] text-gray-500 leading-relaxed text-right">
-                        💡 يمكنك اختيار القناة مباشرة وبسرعة من القائمة المنسدلة في الأعلى، أو البحث بالاسم، أو تصفح القنوات واستيرادها من جدول قنوات السيرفر.
-                      </p>
                     </div>
 
                     {matchError && (
