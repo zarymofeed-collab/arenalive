@@ -1,0 +1,6 @@
+{
+  "name": "ارينا لايف",
+  "description": "بوابة تصفح قنوات البث المباشر، الأفلام، والمسلسلات مع إمكانية التشغيل التلقائي عبر مشغل MyPlayer الخارجي.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
