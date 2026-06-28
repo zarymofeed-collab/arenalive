@@ -443,6 +443,23 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // -- NEW: Handle Android back button to close launcher
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (activePlay) {
+        // Close launcher
+        setActivePlay(null);
+        // Re-push state to prevent exiting the app
+        window.history.pushState({ launcher: true }, '');
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activePlay]);
+
   // Fetch categories when activeTab changes
   useEffect(() => {
     setIsLoadingCats(true);
@@ -559,6 +576,9 @@ export default function App() {
 
     setActivePlay({ name, url: streamUrl, type });
     setLauncherStatus('launching');
+
+    // Push state to enable back button closing the launcher
+    window.history.pushState({ launcher: true }, '');
   };
 
   // ADMIN SUBMIT HANDLERS
@@ -1118,7 +1138,7 @@ export default function App() {
                          </div>
                        )}
  
-                       <div className="flex gap-2.5 pt-1.5 flex-col sm:flex-row">
+                       <div className="flex flex-col sm:flex-row gap-2.5 pt-1.5">
                          <button
                            type="button"
                            onClick={() => setShowServerSettings(false)}
