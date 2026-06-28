@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Tv, 
   Film, 
@@ -111,6 +111,62 @@ interface MatchItem {
   status?: 'live' | 'upcoming' | 'finished';
 }
 
+function formatTimeToArabic12h(time24: string): string {
+  if (!time24) return '';
+  const parts = time24.split(':');
+  if (parts.length < 2) return time24;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  
+  if (isNaN(hours)) return time24;
+  
+  const ampm = hours >= 12 ? 'مساءً' : 'صباحاً';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0 becomes 12
+  const hoursStr = hours < 10 ? `0${hours}` : `${hours}`;
+  
+  return `${hoursStr}:${minutes} ${ampm}`;
+}
+
+function arabic12hToTime24(arabicTime: string): string {
+  if (!arabicTime) return '';
+  const cleanStr = arabicTime.trim();
+  // Match hours:minutes then optionally space then am/pm in Arabic
+  const match = cleanStr.match(/^(\d{1,2}):(\d{2})\s*(مساءً|صباحاً)$/);
+  if (!match) return '';
+  
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const ampm = match[3];
+  
+  if (ampm === 'مساءً' && hours < 12) {
+    hours += 12;
+  } else if (ampm === 'صباحاً' && hours === 12) {
+    hours = 0;
+  }
+  
+  const hoursStr = hours < 10 ? `0${hours}` : `${hours}`;
+  return `${hoursStr}:${minutes}`;
+}
+
+function formatYYYYMMDDToArabic(dateStr: string): string {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const year = parts[0];
+  const month = parseInt(parts[1], 10);
+  const day = parseInt(parts[2], 10);
+  const dateObj = new Date(Number(year), month - 1, day);
+  if (isNaN(dateObj.getTime())) return dateStr;
+  
+  return dateObj.toLocaleDateString('ar-EG', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState<'live' | 'vod' | 'series'>('live');
@@ -193,6 +249,7 @@ export default function App() {
   const [matchTeam2Logo, setMatchTeam2Logo] = useState('');
   const [matchTime, setMatchTime] = useState('');
   const [matchDate, setMatchDate] = useState('');
+
   const [matchChannelId, setMatchChannelId] = useState('');
   const [matchChannelName, setMatchChannelName] = useState('');
   const [matchStatus, setMatchStatus] = useState<'live' | 'upcoming' | 'finished'>('live');
@@ -1120,31 +1177,47 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="col-span-1">
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">وقت المباراة *</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-gray-400">وقت المباراة *</label>
                         <input
-                          type="text"
-                          value={matchTime}
-                          onChange={(e) => setMatchTime(e.target.value)}
-                          placeholder="مثال: 09:45 مساءً"
+                          type="time"
+                          value={arabic12hToTime24(matchTime)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setMatchTime(formatTimeToArabic12h(val));
+                          }}
                           required
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
-                        />
-                      </div>
-                      <div className="col-span-1">
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">تاريخ المباراة (اختياري)</label>
-                        <input
-                          type="text"
-                          value={matchDate}
-                          onChange={(e) => setMatchDate(e.target.value)}
-                          placeholder="YYYY-MM-DD"
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                          style={{ colorScheme: 'dark' }}
+                          className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
                           dir="ltr"
                         />
+                        {matchTime && (
+                          <div className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 inline-block">
+                            الوقت المختار: {matchTime}
+                          </div>
+                        )}
                       </div>
-                      <div className="col-span-1">
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">حالة المباراة</label>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-gray-400">تاريخ المباراة (اختياري)</label>
+                        <input
+                          type="date"
+                          value={matchDate}
+                          onChange={(e) => setMatchDate(e.target.value)}
+                          style={{ colorScheme: 'dark' }}
+                          className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
+                          dir="ltr"
+                        />
+                        {matchDate && (
+                          <div className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-block">
+                            التاريخ المختار: {formatYYYYMMDDToArabic(matchDate)}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-gray-400">حالة المباراة</label>
                         <select
                           value={matchStatus}
                           onChange={(e: any) => setMatchStatus(e.target.value)}
@@ -1825,13 +1898,13 @@ export default function App() {
           // ====== PUBLIC STREAM PORTAL ======
           <>
             {/* Header section with glass effect */}
-            <header className="mb-8 p-6 rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3.5 bg-gradient-to-tr from-cyan-500 to-fuchsia-600 rounded-2xl shadow-lg shadow-cyan-500/20 animate-pulse">
-                  <Sparkles className="w-8 h-8 text-white" />
+            <header className="mb-6 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2.5 sm:p-3.5 bg-gradient-to-tr from-cyan-500 to-fuchsia-600 rounded-xl sm:rounded-2xl shadow-lg shadow-cyan-500/20 animate-pulse">
+                  <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
                     بوابة ارينا لايف
                   </h1>
                 </div>
@@ -1839,20 +1912,19 @@ export default function App() {
 
               {/* Subscription stats */}
               {!isLoadingInfo && subscription ? (
-                <div className="flex flex-wrap gap-4 text-xs">
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-semibold shadow-[0_0_15px_rgba(16,185,129,0.05)]">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 text-[10px] sm:text-xs w-full md:w-auto">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg sm:rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-semibold shadow-[0_0_15px_rgba(16,185,129,0.05)] justify-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                     <span>الحالة: {subscription.user_info?.status === 'Active' ? 'نشط' : subscription.user_info?.status || 'نشط'}</span>
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/5 bg-white/5 text-gray-300">
-                    <Calendar className="w-4 h-4 text-cyan-400" />
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg sm:rounded-xl border border-white/5 bg-white/5 text-gray-300 justify-center">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                     <span>ينتهي في: {formatArabicDate(subscription.user_info?.exp_date || null)}</span>
                   </div>
-
                 </div>
               ) : isLoadingInfo ? (
                 <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
                   <span>جاري تحميل بيانات الاشتراك...</span>
                 </div>
               ) : null}
@@ -2012,21 +2084,23 @@ export default function App() {
             <div className="mb-6 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
               
               {/* Custom styled tabs */}
-              <div className="flex p-1 bg-[#0b1120]/80 border border-white/5 rounded-2xl md:max-w-md w-full shadow-lg">
+              <div className="flex p-1 bg-[#0b1120]/80 border border-white/5 rounded-xl sm:rounded-2xl md:max-w-md w-full shadow-lg">
                 <button
                   onClick={() => setActiveTab('live')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'live'
                       ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>قنوات مباشرة</span>
+                  <span className="truncate">
+                    <span className="hidden [@media(min-width:380px)]:inline">قنوات </span>مباشرة
+                  </span>
                 </button>
                 <button
                   onClick={() => setActiveTab('vod')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'vod'
                       ? 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -2037,7 +2111,7 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => setActiveTab('series')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 sm:py-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'series'
                       ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
