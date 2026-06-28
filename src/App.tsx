@@ -962,7 +962,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen pb-16 bg-[#030614] overflow-x-hidden">
+    <div className="relative min-h-screen pb-12 sm:pb-16 bg-[#030614] overflow-x-hidden">
       {/* Visual background neon decor */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[400px] height-[400px] rounded-full bg-cyan-500/5 blur-[120px]" />
@@ -970,22 +970,22 @@ export default function App() {
         <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(0,229,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,229,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         
         {isAdminPage ? (
           // ====== ADMIN CONTROL PANEL ======
-          <div className="space-y-8 pb-12 animate-fade-in text-right" dir="rtl">
+          <div className="space-y-6 sm:space-y-8 pb-12 animate-fade-in text-right" dir="rtl">
             {/* Admin Header Section with glass effect */}
-            <header className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3.5 bg-gradient-to-tr from-fuchsia-500 via-indigo-500 to-cyan-500 rounded-2xl shadow-lg shadow-fuchsia-500/20">
-                  <Settings className="w-8 h-8 text-white animate-[spin_8s_linear_infinite]" />
+            <header className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2.5 sm:p-3.5 bg-gradient-to-tr from-fuchsia-500 via-indigo-500 to-cyan-500 rounded-xl sm:rounded-2xl shadow-lg shadow-fuchsia-500/20">
+                  <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-[spin_8s_linear_infinite]" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
+                  <h1 className="text-lg sm:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
                     لوحة تحكم المدير المتقدمة
                   </h1>
-                  <p className="text-xs text-gray-400 mt-1 font-medium">
+                  <p className="text-[10px] sm:text-xs text-gray-400 mt-1 font-medium hidden sm:block">
                     تعديل إعدادات الاتصال بسيرفر IPTV وتغيير أسماء وشعارات أو روابط تشغيل القنوات والمسلسلات
                   </p>
                 </div>
@@ -1000,34 +1000,34 @@ export default function App() {
                   }
                   setIsAdminPage(false);
                 }}
-                className="px-6 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-extrabold text-[10px] sm:text-xs transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md"
               >
                 <span>عرض واجهة البث العامة</span>
-                <ExternalLink className="w-4 h-4 text-cyan-400" />
+                <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
               </button>
             </header>
 
             {/* Admin Workspace Columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
               
               {/* Right/Left: Server Connection & Overrides Creator Form */}
-              <div className="lg:col-span-5 space-y-8">
+              <div className="lg:col-span-5 space-y-6 sm:space-y-8">
                 
                 {/* Server settings card */}
-                 <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl transition-all duration-300">
+                 <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl transition-all duration-300">
                    <div className="flex items-center justify-between mb-4">
                      <h2 className="text-sm font-black text-white flex items-center gap-2">
                        <Sliders className="w-4 h-4 text-cyan-400" />
-                       <span>إعدادات الاتصال بسيرفر IPTV</span>
+                       <span className="text-xs sm:text-sm">إعدادات الاتصال بسيرفر IPTV</span>
                      </h2>
                      
                      {!showServerSettings && (
                        <button
                          type="button"
                          onClick={() => setShowServerSettings(true)}
-                         className="px-3 py-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-extrabold text-xs transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                         className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-extrabold text-[10px] sm:text-xs transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
                        >
-                         <Edit className="w-3.5 h-3.5" />
+                         <Edit className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                          <span>تعديل</span>
                        </button>
                      )}
@@ -1035,20 +1035,20 @@ export default function App() {
                    
                    {!showServerSettings ? (
                      <div className="space-y-3.5">
-                       <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
-                         <div className="flex items-center justify-between text-xs">
+                       <div className="p-3 sm:p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
+                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-1 sm:gap-0">
                            <span className="text-gray-400">رابط السيرفر:</span>
-                           <span className="font-mono text-cyan-400 font-semibold text-left select-all" dir="ltr">
+                           <span className="font-mono text-cyan-400 font-semibold text-left select-all break-all" dir="ltr">
                              {serverConfig.host || 'غير محدد'}
                            </span>
                          </div>
-                         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2.5">
+                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs border-t border-white/5 pt-2.5 gap-1 sm:gap-0">
                            <span className="text-gray-400">اسم المستخدم:</span>
-                           <span className="font-mono text-gray-200 font-semibold text-left select-all" dir="ltr">
+                           <span className="font-mono text-gray-200 font-semibold text-left select-all break-all" dir="ltr">
                              {serverConfig.username || 'غير محدد'}
                            </span>
                          </div>
-                         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2.5">
+                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs border-t border-white/5 pt-2.5 gap-1 sm:gap-0">
                            <span className="text-gray-400">كلمة المرور:</span>
                            <span className="font-mono text-gray-400 font-semibold text-left" dir="ltr">
                              ••••••••
@@ -1057,7 +1057,7 @@ export default function App() {
                        </div>
 
                        {configMessage && (
-                         <div className={`p-3.5 rounded-xl text-xs font-bold border ${
+                         <div className={`p-3 sm:p-3.5 rounded-xl text-[10px] sm:text-xs font-bold border ${
                            configMessage.type === 'success' 
                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                              : 'bg-red-500/10 border-red-500/20 text-red-400'
@@ -1069,47 +1069,47 @@ export default function App() {
                    ) : (
                      <form onSubmit={handleSaveConfig} className="space-y-4">
                        <div>
-                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط السيرفر (Host URL)</label>
+                         <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">رابط السيرفر (Host URL)</label>
                          <input
                            type="url"
                            value={adminHost}
                            onChange={(e) => setAdminHost(e.target.value)}
                            placeholder="مثال: http://vo5px.top"
                            required
-                           className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
+                           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
                            dir="ltr"
                          />
                        </div>
                        
                        <div className="grid grid-cols-2 gap-3">
                          <div>
-                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">اسم المستخدم</label>
+                           <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">اسم المستخدم</label>
                            <input
                              type="text"
                              value={adminUser}
                              onChange={(e) => setAdminUser(e.target.value)}
                              placeholder="Username"
                              required
-                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
+                             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
                              dir="ltr"
                            />
                          </div>
                          <div>
-                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">كلمة المرور</label>
+                           <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">كلمة المرور</label>
                            <input
                              type="text"
                              value={adminPass}
                              onChange={(e) => setAdminPass(e.target.value)}
                              placeholder="Password"
                              required
-                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
+                             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none transition-colors text-left"
                              dir="ltr"
                            />
                          </div>
                        </div>
  
                        {configMessage && (
-                         <div className={`p-3.5 rounded-xl text-xs font-bold border ${
+                         <div className={`p-3 sm:p-3.5 rounded-xl text-[10px] sm:text-xs font-bold border ${
                            configMessage.type === 'success' 
                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                              : 'bg-red-500/10 border-red-500/20 text-red-400'
@@ -1118,18 +1118,18 @@ export default function App() {
                          </div>
                        )}
  
-                       <div className="flex gap-2.5 pt-1.5">
+                       <div className="flex gap-2.5 pt-1.5 flex-col sm:flex-row">
                          <button
                            type="button"
                            onClick={() => setShowServerSettings(false)}
-                           className="flex-1 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 font-extrabold text-xs transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
+                           className="flex-1 py-2.5 sm:py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 font-extrabold text-[10px] sm:text-xs transition-all duration-300 flex items-center justify-center cursor-pointer shadow-sm"
                          >
                            إلغاء
                          </button>
                          <button
                            type="submit"
                            disabled={isSavingConfig}
-                           className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                           className="flex-[2] py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-extrabold text-[10px] sm:text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
                          >
                            {isSavingConfig ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : null}
                            <span>حفظ الإعدادات وتحديث الاتصال</span>
@@ -1141,70 +1141,70 @@ export default function App() {
 
                  {/* Override items customization card */}
                  {overrideId && (
-                   <div id="override-editor-form" className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl animate-fade-in">
+                   <div id="override-editor-form" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl animate-fade-in">
                      <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
                        <Plus className="w-4 h-4 text-fuchsia-400" />
-                       <span>تخصيص وتعديل قنوات وبث السيرفر</span>
+                       <span className="text-xs sm:text-sm">تخصيص وتعديل قنوات وبث السيرفر</span>
                      </h2>
                      <p className="text-[10px] text-gray-400 mb-4 leading-relaxed">
                        ادخل معرف القناة (Stream ID) لتعديل الاسم، شعار القناة، أو وضع رابط بث خارجي بديل لتشغيلها بشكل مباشر.
                      </p>
 
                      <form onSubmit={handleSaveOverride} className="space-y-4">
-                       <div className="grid grid-cols-3 gap-3">
+                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                          <div className="col-span-1">
-                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">معرف المادة *</label>
+                           <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">معرف المادة *</label>
                            <input
                              type="text"
                              value={overrideId}
                              onChange={(e) => setOverrideId(e.target.value)}
                              placeholder="مثال: 54101"
                              required
-                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
                              dir="ltr"
                            />
                          </div>
-                         <div className="col-span-2">
-                           <label className="block text-xs font-semibold text-gray-400 mb-1.5">الاسم البديل المخصص</label>
+                         <div className="col-span-1 sm:col-span-2">
+                           <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">الاسم البديل المخصص</label>
                            <input
                              type="text"
                              value={overrideName}
                              onChange={(e) => setOverrideName(e.target.value)}
                              placeholder="مثال: اسم القناة البديل"
-                             className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
                            />
                          </div>
                        </div>
 
                        <div>
-                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط الشعار المخصص (Logo URL)</label>
+                         <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">رابط الشعار المخصص (Logo URL)</label>
                          <input
                            type="url"
                            value={overrideIcon}
                            onChange={(e) => setOverrideIcon(e.target.value)}
                            placeholder="https://example.com/logo.png"
-                           className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
                            dir="ltr"
                          />
                        </div>
 
                        <div>
-                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط البث البديل (Stream Link / M3U8)</label>
+                         <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">رابط البث البديل (Stream Link / M3U8)</label>
                          <input
                            type="url"
                            value={overrideStreamUrl}
                            onChange={(e) => setOverrideStreamUrl(e.target.value)}
                            placeholder="https://example.com/stream.m3u8"
-                           className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                           className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-fuchsia-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
                            dir="ltr"
                          />
                        </div>
 
-                       <div className="flex gap-2">
+                       <div className="flex flex-col sm:flex-row gap-2">
                          <button
                            type="submit"
                            disabled={isSavingOverride || !overrideId}
-                           className="flex-grow py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-600 hover:from-fuchsia-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                           className="flex-grow py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-600 hover:from-fuchsia-400 hover:to-indigo-500 text-white font-extrabold text-[10px] sm:text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
                          >
                            {isSavingOverride ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                            <span>حفظ التعديل والمزامنة</span>
@@ -1219,7 +1219,7 @@ export default function App() {
                                setOverrideIcon('');
                                setOverrideStreamUrl('');
                              }}
-                             className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold text-xs transition-all duration-300 cursor-pointer"
+                             className="px-4 py-2.5 sm:py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold text-[10px] sm:text-xs transition-all duration-300 cursor-pointer"
                            >
                              إلغاء
                            </button>
@@ -1230,69 +1230,69 @@ export default function App() {
                  )}
 
                 {/* Match Creator Form */}
-                <div id="match-editor-form" className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl mt-6">
+                <div id="match-editor-form" className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl mt-6">
                   <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-cyan-400" />
-                    <span>{matchEditId ? 'تعديل مباراة قائمة' : 'إضافة مباراة جديدة'}</span>
+                    <span className="text-xs sm:text-sm">{matchEditId ? 'تعديل مباراة قائمة' : 'إضافة مباراة جديدة'}</span>
                   </h2>
                   <p className="text-[10px] text-gray-400 mb-4 leading-relaxed">
                     قم بإضافة مباراة جديدة، حدد أسماء الفرق والشعارات، واقرنها بقناة البث المباشر لتبث مباشرة في الصفحة الرئيسية.
                   </p>
 
                   <form onSubmit={handleSaveMatch} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">الفريق الأول (صاحب الأرض) *</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">الفريق الأول (صاحب الأرض) *</label>
                         <input
                           type="text"
                           value={matchTeam1}
                           onChange={(e) => setMatchTeam1(e.target.value)}
                           placeholder="مثال: ريال مدريد"
                           required
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">الفريق الثاني (الضيف) *</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">الفريق الثاني (الضيف) *</label>
                         <input
                           type="text"
                           value={matchTeam2}
                           onChange={(e) => setMatchTeam2(e.target.value)}
                           placeholder="مثال: برشلونة"
                           required
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط شعار الفريق الأول (اختياري)</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">رابط شعار الفريق الأول (اختياري)</label>
                         <input
                           type="url"
                           value={matchTeam1Logo}
                           onChange={(e) => setMatchTeam1Logo(e.target.value)}
                           placeholder="مثال: https://...logo1.png"
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
                           dir="ltr"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">رابط شعار الفريق الثاني (اختياري)</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">رابط شعار الفريق الثاني (اختياري)</label>
                         <input
                           type="url"
                           value={matchTeam2Logo}
                           onChange={(e) => setMatchTeam2Logo(e.target.value)}
                           placeholder="مثال: https://...logo2.png"
-                          className="w-full px-4 py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors text-left"
                           dir="ltr"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-gray-400">وقت المباراة *</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400">وقت المباراة *</label>
                         <input
                           type="time"
                           value={arabic12hToTime24(matchTime)}
@@ -1302,7 +1302,7 @@ export default function App() {
                           }}
                           required
                           style={{ colorScheme: 'dark' }}
-                          className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
                           dir="ltr"
                         />
                         {matchTime && (
@@ -1313,13 +1313,13 @@ export default function App() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-gray-400">تاريخ المباراة (اختياري)</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400">تاريخ المباراة (اختياري)</label>
                         <input
                           type="date"
                           value={matchDate}
                           onChange={(e) => setMatchDate(e.target.value)}
                           style={{ colorScheme: 'dark' }}
-                          className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
                           dir="ltr"
                         />
                         {matchDate && (
@@ -1330,11 +1330,11 @@ export default function App() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="block text-xs font-semibold text-gray-400">حالة المباراة</label>
+                        <label className="block text-[10px] sm:text-xs font-semibold text-gray-400">حالة المباراة</label>
                         <select
                           value={matchStatus}
                           onChange={(e: any) => setMatchStatus(e.target.value)}
-                          className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer"
                         >
                           <option value="live">مباشر الآن 🔴</option>
                           <option value="upcoming">قادمة 🗓️</option>
@@ -1344,23 +1344,23 @@ export default function App() {
                     </div>
 
                     {/* Channel Selector for Match */}
-                    <div className="border border-white/5 bg-black/25 p-4 rounded-2xl space-y-4">
-                      <h3 className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                    <div className="border border-white/5 bg-black/25 p-3 sm:p-4 rounded-2xl space-y-4">
+                      <h3 className="text-[10px] sm:text-xs font-bold text-gray-300 flex items-center gap-1.5">
                         <Tv className="w-3.5 h-3.5 text-cyan-400" />
                         <span>ربط بقناة البث المباشر *</span>
                       </h3>
 
                       {/* Dropdown Menu (القائمة المنسدلة المباشرة مع تصفية الفئة) */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Category Filter for dropdown */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-400 mb-1.5">تصفية القنوات حسب الفئة:</label>
+                          <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">تصفية القنوات حسب الفئة:</label>
                           <select
                             value={matchSelectedCategory}
                             onChange={(e) => {
                               setMatchSelectedCategory(e.target.value);
                             }}
-                            className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer"
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer"
                           >
                             <option value="all">كل الفئات والقنوات 📺</option>
                             {adminLiveCategories.map(cat => (
@@ -1371,9 +1371,9 @@ export default function App() {
 
                         {/* Channel Selection dropdown */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-400 mb-1.5">اختر القناة من القائمة المنسدلة:</label>
+                          <label className="block text-[10px] sm:text-xs font-semibold text-gray-400 mb-1.5">اختر القناة من القائمة المنسدلة:</label>
                           {isLoadingAllLiveChannels ? (
-                            <div className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-xs text-gray-400 flex items-center gap-2">
+                            <div className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-black/40 border border-white/10 rounded-xl text-xs text-gray-400 flex items-center gap-2">
                               <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
                               <span>جاري تحميل القنوات من السيرفر...</span>
                             </div>
@@ -1391,7 +1391,7 @@ export default function App() {
                                   setMatchChannelName('');
                                 }
                               }}
-                              className="w-full px-4 py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer"
+                              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0b1120] border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors cursor-pointer"
                             >
                               <option value="">
                                 {matchSelectedCategory === 'all' 
@@ -1414,16 +1414,16 @@ export default function App() {
                     </div>
 
                     {matchError && (
-                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs font-bold text-red-400">
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] sm:text-xs font-bold text-red-400">
                         {matchError}
                       </div>
                     )}
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <button
                         type="submit"
                         disabled={isSavingMatch || !matchChannelId}
-                        className="flex-grow py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex-grow py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-extrabold text-[10px] sm:text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {isSavingMatch ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                         <span>{matchEditId ? 'تعديل وحفظ المباراة' : 'إضافة ونشر المباراة'}</span>
@@ -1449,7 +1449,7 @@ export default function App() {
                             setShowMatchChannelDropdown(false);
                             setMatchSelectedCategory('all');
                           }}
-                          className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold text-xs transition-all duration-300 cursor-pointer"
+                          className="px-4 py-2.5 sm:py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold text-[10px] sm:text-xs transition-all duration-300 cursor-pointer"
                         >
                           إلغاء
                         </button>
@@ -1461,17 +1461,17 @@ export default function App() {
               </div>
 
               {/* Right Column: Streams Lookup Search & Overrides List */}
-              <div className="lg:col-span-7 space-y-8">
+              <div className="lg:col-span-7 space-y-6 sm:space-y-8">
 
                 {/* Direct Live Channels Browser & Importer */}
-                <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl" dir="rtl">
+                <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl" dir="rtl">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                     <div>
                       <h2 className="text-sm font-black text-white flex items-center gap-2">
                         <Tv className="w-4 h-4 text-emerald-400 animate-pulse" />
-                        <span>مستورد القنوات المباشرة السريع</span>
+                        <span className="text-xs sm:text-sm">مستورد القنوات المباشرة السريع</span>
                       </h2>
-                      <p className="text-[10px] text-gray-400 mt-0.5 font-medium">
+                      <p className="text-[10px] text-gray-400 mt-0.5 font-medium hidden sm:block">
                         تصفح جميع القنوات الحية على السيرفر وقم بربطها كقنوات بث للمباريات أو تخصيصها بنقرة واحدة.
                       </p>
                     </div>
@@ -1528,12 +1528,12 @@ export default function App() {
                       <p className="text-[10px] text-gray-600 mt-1">تأكد من إعدادات اتصال السيرفر أو جرب كلمة بحث أخرى.</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                       {adminLiveChannels.map((ch) => {
                         const idStr = String(ch.stream_id || '');
                         const iconStr = ch.stream_icon || '';
                         return (
-                          <div key={idStr} className="p-3.5 rounded-2xl border border-white/5 bg-black/35 hover:bg-black/50 hover:border-emerald-500/30 transition-all flex flex-col justify-between gap-3 group">
+                          <div key={idStr} className="p-3 rounded-2xl border border-white/5 bg-black/35 hover:bg-black/50 hover:border-emerald-500/30 transition-all flex flex-col justify-between gap-3 group">
                             <div className="flex items-center gap-2.5 min-w-0">
                               {iconStr ? (
                                 <img
@@ -1552,7 +1552,7 @@ export default function App() {
                             </div>
 
                             {/* Import buttons row */}
-                            <div className="flex gap-1.5 mt-1">
+                            <div className="flex gap-1.5 mt-1 flex-wrap">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1624,16 +1624,16 @@ export default function App() {
                 </div>
 
                 {/* Live stream search assistant */}
-                <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
+                <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
                   <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
                     <Search className="w-4 h-4 text-cyan-400" />
-                    <span>مساعد البحث وتحديد معرفات القنوات</span>
+                    <span className="text-xs sm:text-sm">مساعد البحث وتحديد معرفات القنوات</span>
                   </h2>
                   <p className="text-[10px] text-gray-400 mb-4">
                     ابحث عن أي قناة أو فيلم أو مسلسل على السيرفر لتعديل بياناتها بضغطة زر واحدة دون الحاجة لمعرفة الـ ID مسبقاً.
                   </p>
 
-                  <form onSubmit={handleSearchStreamsForOverride} className="flex gap-2 mb-4">
+                  <form onSubmit={handleSearchStreamsForOverride} className="flex flex-col sm:flex-row gap-2 mb-4">
                     <select
                       value={overrideSearchTab}
                       onChange={(e: any) => setOverrideSearchTab(e.target.value)}
@@ -1658,7 +1658,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={isSearchingOverrides}
-                      className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl transition-all shadow-md disabled:opacity-50"
+                      className="px-4 sm:px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl transition-all shadow-md disabled:opacity-50"
                     >
                       {isSearchingOverrides ? 'جاري البحث...' : 'ابحث الآن'}
                     </button>
@@ -1670,8 +1670,8 @@ export default function App() {
                         const idStr = String(item.stream_id || item.series_id || '');
                         const iconStr = item.stream_icon || item.cover || '';
                         return (
-                          <div key={idStr} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-xs">
-                            <div className="flex items-center gap-2.5 truncate">
+                          <div key={idStr} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-xs gap-2">
+                            <div className="flex items-center gap-2.5 truncate w-full">
                               {iconStr ? (
                                 <img src={iconStr} alt="" className="w-7 h-7 rounded object-cover border border-white/10 flex-shrink-0" />
                               ) : (
@@ -1683,7 +1683,7 @@ export default function App() {
                               </div>
                             </div>
 
-                            <div className="flex gap-2 flex-wrap justify-end">
+                            <div className="flex gap-2 flex-wrap justify-end w-full sm:w-auto">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1726,7 +1726,7 @@ export default function App() {
                 </div>
 
                 {/* Overriden list table */}
-                <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
+                <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
                   <h2 className="text-sm font-black text-white mb-3">
                     قائمة المواد والقنوات المعدلة حالياً ({adminOverrides.length})
                   </h2>
@@ -1740,8 +1740,8 @@ export default function App() {
                   ) : (
                     <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                       {adminOverrides.map((ov) => (
-                        <div key={ov.id} className="p-3.5 rounded-2xl border border-white/5 bg-black/25 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3.5 truncate">
+                        <div key={ov.id} className="p-3 rounded-2xl border border-white/5 bg-black/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3.5 truncate w-full">
                             {ov.icon ? (
                               <img src={ov.icon} alt="" className="w-11 h-11 rounded-xl object-cover border border-white/10 flex-shrink-0" />
                             ) : (
@@ -1756,7 +1756,7 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className="flex gap-2 flex-shrink-0">
+                          <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
                             {overrideToDelete === ov.id ? (
                               <div className="flex items-center gap-1.5 bg-red-950/40 p-1 px-2 rounded-xl border border-red-500/30">
                                 <span className="text-[10px] text-red-400 font-bold">حذف؟</span>
@@ -1799,10 +1799,10 @@ export default function App() {
                 </div>
 
                 {/* Matches Schedule List */}
-                <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl mt-6 text-right" dir="rtl">
+                <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl mt-6 text-right" dir="rtl">
                   <h2 className="text-sm font-black text-white mb-3 flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-cyan-400" />
-                    <span>جدول المباريات الحالية ({matches.length})</span>
+                    <span className="text-xs sm:text-sm">جدول المباريات الحالية ({matches.length})</span>
                   </h2>
 
                   {matches.length === 0 ? (
@@ -1814,8 +1814,8 @@ export default function App() {
                   ) : (
                     <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                       {matches.map((m) => (
-                        <div key={m.id} className="p-4 rounded-2xl border border-white/5 bg-black/25 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex items-center gap-4">
+                        <div key={m.id} className="p-3 sm:p-4 rounded-2xl border border-white/5 bg-black/25 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-2">
                               {m.team1Logo ? (
                                 <img src={m.team1Logo} className="w-8 h-8 rounded-full object-cover border border-white/10" alt="" referrerPolicy="no-referrer" />
@@ -1835,7 +1835,7 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-4 justify-between md:justify-end">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between w-full md:w-auto">
                             <div className="text-right">
                               <p className="text-[11px] font-bold text-gray-300">{m.time} {m.date ? `(${m.date})` : ''}</p>
                               <div className="flex items-center gap-1.5 mt-1">
@@ -1898,13 +1898,13 @@ export default function App() {
           // ====== PUBLIC STREAM PORTAL ======
           <>
             {/* Header section with glass effect */}
-            <header className="mb-6 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
+            <header className="mb-4 sm:mb-6 p-3 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-6">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2.5 sm:p-3.5 bg-gradient-to-tr from-cyan-500 to-fuchsia-600 rounded-xl sm:rounded-2xl shadow-lg shadow-cyan-500/20 animate-pulse">
+                <div className="p-2 sm:p-3.5 bg-gradient-to-tr from-cyan-500 to-fuchsia-600 rounded-xl sm:rounded-2xl shadow-lg shadow-cyan-500/20 animate-pulse">
                   <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg sm:text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
+                  <h1 className="text-base sm:text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
                     بوابة ارينا لايف
                   </h1>
                 </div>
@@ -1912,12 +1912,12 @@ export default function App() {
 
               {/* Subscription stats */}
               {!isLoadingInfo && subscription ? (
-                <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 text-[10px] sm:text-xs w-full md:w-auto">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg sm:rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-semibold shadow-[0_0_15px_rgba(16,185,129,0.05)] justify-center">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 text-[10px] sm:text-xs w-full md:w-auto">
+                  <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-semibold shadow-[0_0_15px_rgba(16,185,129,0.05)] justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                     <span>الحالة: {subscription.user_info?.status === 'Active' ? 'نشط' : subscription.user_info?.status || 'نشط'}</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg sm:rounded-xl border border-white/5 bg-white/5 text-gray-300 justify-center">
+                  <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-white/5 bg-white/5 text-gray-300 justify-center">
                     <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                     <span>ينتهي في: {formatArabicDate(subscription.user_info?.exp_date || null)}</span>
                   </div>
@@ -1932,14 +1932,14 @@ export default function App() {
 
             {/* Demo Mode Alert Banner */}
             {subscription?.user_info?.isDemo && (
-              <div className="mb-6 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold shadow-[0_0_20px_rgba(245,158,11,0.05)] animate-fade-in text-right" dir="rtl">
+              <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold shadow-[0_0_20px_rgba(245,158,11,0.05)] animate-fade-in text-right" dir="rtl">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400 animate-pulse">
                     <AlertCircle className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-sm mb-0.5">الوضع التجريبي المحسن نشط حالياً (Offline Fallback)</h3>
-                    <p className="text-gray-300 text-[11px] leading-relaxed">
+                    <p className="text-gray-300 text-[11px] leading-relaxed hidden sm:block">
                       سيرفر IPTV الحالي لا يستجيب (خطأ 503). قمنا بتفعيل البث التجريبي بمواد ترفيهية وقنوات حية جاهزة للعمل فوراً. يمكنك الانتقال للوحة التحكم لتحديث بيانات السيرفر الخاص بك.
                     </p>
                   </div>
@@ -1959,13 +1959,13 @@ export default function App() {
 
             {/* Matches Section at the top of the main page */}
             {matches.length > 0 && (
-              <div className="mb-6 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl text-right animate-fade-in" dir="rtl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div className="mb-4 sm:mb-6 p-3 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl text-right animate-fade-in" dir="rtl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-xl">
-                      <span className="relative flex h-2.5 w-2.5">
+                      <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-red-500"></span>
                       </span>
                     </div>
                     <h2 className="text-sm sm:text-base md:text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
@@ -1996,7 +1996,7 @@ export default function App() {
                             customUrl
                           );
                         }}
-                        className={`group relative p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+                        className={`group relative p-3 sm:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
                           isLive 
                             ? 'bg-gradient-to-br from-red-500/10 via-black/40 to-black/60 border-red-500/30 hover:border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.05)] hover:shadow-[0_0_25px_rgba(239,68,68,0.15)]'
                             : displayStatus === 'upcoming'
@@ -2008,71 +2008,71 @@ export default function App() {
                         <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                         {/* Top Info row */}
-                        <div className="flex justify-between items-center mb-3">
-                          <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black flex items-center gap-1 shadow-sm ${
+                        <div className="flex justify-between items-center mb-2 sm:mb-3">
+                          <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[8px] sm:text-[10px] font-black flex items-center gap-1 shadow-sm ${
                             isLive 
                               ? 'bg-red-500 text-white animate-pulse'
                               : displayStatus === 'upcoming'
                               ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
                               : 'bg-white/5 text-gray-400'
                           }`}>
-                            {isLive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />}
+                            {isLive && <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-ping" />}
                             <span>{isLive ? 'مباشر الآن 🔴' : displayStatus === 'upcoming' ? 'مباراة قادمة 🗓️' : 'منتهية 🏁'}</span>
                           </span>
-                          <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold bg-white/5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg">
+                          <span className="text-[8px] sm:text-[10px] text-gray-400 font-bold bg-white/5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg">
                             {m.time} {m.date ? `| ${m.date}` : ''}
                           </span>
                         </div>
 
                         {/* Teams row */}
-                        <div className="flex items-center justify-between gap-1.5 my-2.5">
+                        <div className="flex items-center justify-between gap-1 my-2 sm:my-2.5">
                           {/* Team 1 */}
-                          <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+                          <div className="flex-1 flex flex-col items-center text-center gap-1 min-w-0">
                             {m.team1Logo ? (
                               <img
                                 src={m.team1Logo}
                                 alt={m.team1}
-                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 group-hover:scale-105 transition-transform duration-300 shadow-md"
+                                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 group-hover:scale-105 transition-transform duration-300 shadow-md"
                                 referrerPolicy="no-referrer"
                               />
                             ) : (
-                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-base sm:text-lg group-hover:scale-105 transition-transform duration-300">⚽</div>
+                              <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-base sm:text-lg group-hover:scale-105 transition-transform duration-300">⚽</div>
                             )}
-                            <span className="font-extrabold text-[11px] sm:text-xs text-white truncate w-full group-hover:text-cyan-300 transition-colors">{m.team1}</span>
+                            <span className="font-extrabold text-[10px] sm:text-xs text-white truncate w-full group-hover:text-cyan-300 transition-colors">{m.team1}</span>
                           </div>
 
                           {/* Versus badge */}
                           <div className="flex-shrink-0 flex flex-col items-center">
-                            <span className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border border-white/10 font-black text-[9px] sm:text-[10px] text-cyan-400 shadow-md">
+                            <span className="px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border border-white/10 font-black text-[8px] sm:text-[10px] text-cyan-400 shadow-md">
                               VS
                             </span>
                           </div>
 
                           {/* Team 2 */}
-                          <div className="flex-1 flex flex-col items-center text-center gap-1.5 min-w-0">
+                          <div className="flex-1 flex flex-col items-center text-center gap-1 min-w-0">
                             {m.team2Logo ? (
                               <img
                                 src={m.team2Logo}
                                 alt={m.team2}
-                                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 group-hover:scale-105 transition-transform duration-300 shadow-md"
+                                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover border border-white/10 group-hover:scale-105 transition-transform duration-300 shadow-md"
                                 referrerPolicy="no-referrer"
                               />
                             ) : (
-                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-base sm:text-lg group-hover:scale-105 transition-transform duration-300">⚽</div>
+                              <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-base sm:text-lg group-hover:scale-105 transition-transform duration-300">⚽</div>
                             )}
-                            <span className="font-extrabold text-[11px] sm:text-xs text-white truncate w-full group-hover:text-cyan-300 transition-colors">{m.team2}</span>
+                            <span className="font-extrabold text-[10px] sm:text-xs text-white truncate w-full group-hover:text-cyan-300 transition-colors">{m.team2}</span>
                           </div>
                         </div>
 
                         {/* Bottom channel bar */}
-                        <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-gray-400">
+                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/5 flex items-center justify-between text-[9px] sm:text-[11px] font-bold text-gray-400">
                           <div className="flex items-center gap-1 text-cyan-400 font-extrabold">
-                            <Tv className="w-3.5 h-3.5" />
-                            <span>{m.channelName}</span>
+                            <Tv className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                            <span className="truncate max-w-[80px] sm:max-w-none">{m.channelName}</span>
                           </div>
-                          <span className="text-[9px] sm:text-[10px] text-gray-500 group-hover:text-white transition-colors flex items-center gap-1">
+                          <span className="text-[8px] sm:text-[10px] text-gray-500 group-hover:text-white transition-colors flex items-center gap-1">
                             <span>شاهد البث</span>
-                            <ChevronLeft className="w-3.5 h-3.5" />
+                            <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </span>
                         </div>
                       </div>
@@ -2083,51 +2083,51 @@ export default function App() {
             )}
 
             {/* Tab Controls & Controls bar */}
-            <div className="mb-6 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+            <div className="mb-4 sm:mb-6 flex flex-col lg:flex-row gap-3 sm:gap-4 items-stretch lg:items-center justify-between">
               
               {/* Custom styled tabs */}
               <div className="flex p-1 bg-[#0b1120]/80 border border-white/5 rounded-xl sm:rounded-2xl md:max-w-md w-full shadow-lg">
                 <button
                   onClick={() => setActiveTab('live')}
-                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 sm:py-3 px-1 sm:px-4 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'live'
                       ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Tv className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="truncate">
                     <span className="hidden [@media(min-width:380px)]:inline">قنوات </span>مباشرة
                   </span>
                 </button>
                 <button
                   onClick={() => setActiveTab('vod')}
-                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 sm:py-3 px-1 sm:px-4 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'vod'
                       ? 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Film className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>أفلام</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('series')}
-                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 sm:py-3 px-1 sm:px-4 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'series'
                       ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Clapperboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Clapperboard className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>مسلسلات</span>
                 </button>
               </div>
 
               {/* Categories select and Search form combined */}
-              <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3 flex-grow lg:max-w-2xl">
+              <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-grow lg:max-w-2xl">
                 {/* Category Dropdown */}
-                <div className="relative min-w-[200px]">
+                <div className="relative min-w-[140px] sm:min-w-[200px]">
                   <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                     <Layers className="w-4 h-4 text-cyan-400" />
                   </div>
@@ -2135,7 +2135,7 @@ export default function App() {
                     value={selectedCategory}
                     onChange={handleCategoryChange}
                     disabled={isLoadingCats}
-                    className="w-full pr-10 pl-4 py-3 bg-[#0b1120] border border-white/10 rounded-2xl text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer appearance-none"
+                    className="w-full pr-8 sm:pr-10 pl-3 sm:pl-4 py-2 sm:py-3 bg-[#0b1120] border border-white/10 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer appearance-none"
                   >
                     <option value="all">كل الأقسام</option>
                     {categories.map((cat) => (
@@ -2145,12 +2145,12 @@ export default function App() {
                     ))}
                   </select>
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 </div>
 
                 {/* Search Input */}
-                <div className="relative flex-grow flex shadow-md rounded-2xl overflow-hidden border border-white/10 focus-within:border-cyan-500/50 transition-colors">
+                <div className="relative flex-grow flex shadow-md rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 focus-within:border-cyan-500/50 transition-colors">
                   <input
                     type="text"
                     value={searchVal}
@@ -2159,14 +2159,14 @@ export default function App() {
                       activeTab === 'live' ? 'ابحث عن اسم القناة...' :
                       activeTab === 'vod' ? 'ابحث عن فيلم...' : 'ابحث عن مسلسل...'
                     }
-                    className="w-full pr-11 pl-4 py-3 bg-[#0b1120] text-sm font-medium text-white placeholder-gray-500 focus:outline-none"
+                    className="w-full pr-9 sm:pr-11 pl-3 sm:pl-4 py-2 sm:py-3 bg-[#0b1120] text-xs sm:text-sm font-medium text-white placeholder-gray-500 focus:outline-none"
                   />
                   <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none">
-                    <Search className="w-4.5 h-4.5 text-gray-400" />
+                    <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-gray-400" />
                   </div>
                   <button
                     type="submit"
-                    className="px-6 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs transition-all duration-300"
+                    className="px-4 sm:px-6 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-[10px] sm:text-xs transition-all duration-300"
                   >
                     بحث
                   </button>
@@ -2176,12 +2176,12 @@ export default function App() {
 
             {/* Content list & grids */}
             {isLoadingStreams ? (
-              <div className="py-24 flex flex-col items-center justify-center gap-4">
+              <div className="py-16 sm:py-24 flex flex-col items-center justify-center gap-4">
                 <div className="relative flex items-center justify-center">
-                  <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin" />
-                  <Sparkles className="absolute w-6 h-6 text-fuchsia-500 animate-pulse" />
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin" />
+                  <Sparkles className="absolute w-5 h-5 sm:w-6 sm:h-6 text-fuchsia-500 animate-pulse" />
                 </div>
-                <p className="text-gray-400 text-sm font-semibold animate-pulse">
+                <p className="text-gray-400 text-xs sm:text-sm font-semibold animate-pulse">
                   جاري تحميل قائمة {
                     activeTab === 'live' ? 'القنوات...' :
                     activeTab === 'vod' ? 'الأفلام...' : 'المسلسلات...'
@@ -2189,26 +2189,26 @@ export default function App() {
                 </p>
               </div>
             ) : error ? (
-              <div className="my-12 p-8 rounded-2xl border border-red-500/20 bg-red-500/5 text-center flex flex-col items-center gap-3">
-                <AlertCircle className="w-12 h-12 text-red-400" />
-                <h3 className="text-lg font-bold text-white">حدث خطأ أثناء تحميل البيانات</h3>
-                <p className="text-gray-400 text-sm max-w-md">{error}</p>
+              <div className="my-8 sm:my-12 p-6 sm:p-8 rounded-2xl border border-red-500/20 bg-red-500/5 text-center flex flex-col items-center gap-3">
+                <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-400" />
+                <h3 className="text-base sm:text-lg font-bold text-white">حدث خطأ أثناء تحميل البيانات</h3>
+                <p className="text-gray-400 text-xs sm:text-sm max-w-md">{error}</p>
                 <button 
                   onClick={() => {
                     setPage(1);
                     setSearchQuery('');
                     setSearchVal('');
                   }}
-                  className="mt-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all"
+                  className="mt-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] sm:text-xs font-bold transition-all"
                 >
                   إعادة التحميل والمحاولة مجدداً
                 </button>
               </div>
             ) : streams.length === 0 ? (
-              <div className="my-16 py-16 text-center rounded-3xl border border-white/5 bg-[#0b1120]/30 backdrop-blur-md">
-                <AlertCircle className="w-14 h-14 mx-auto text-gray-500 mb-4" />
-                <p className="text-gray-400 font-bold mb-2">لا توجد نتائج مطابقة لبحثك</p>
-                <p className="text-gray-500 text-xs max-w-sm mx-auto">
+              <div className="my-12 sm:my-16 py-12 sm:py-16 text-center rounded-3xl border border-white/5 bg-[#0b1120]/30 backdrop-blur-md">
+                <AlertCircle className="w-12 h-12 sm:w-14 sm:h-14 mx-auto text-gray-500 mb-4" />
+                <p className="text-gray-400 font-bold mb-2 text-sm sm:text-base">لا توجد نتائج مطابقة لبحثك</p>
+                <p className="text-gray-500 text-[10px] sm:text-xs max-w-sm mx-auto">
                   تأكد من كتابة الكلمة بشكل صحيح، أو اختر قسماً آخراً من القائمة المنسدلة للتصفح.
                 </p>
                 <button
@@ -2218,7 +2218,7 @@ export default function App() {
                     setSelectedCategory('all');
                     setPage(1);
                   }}
-                  className="mt-6 px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 text-xs font-bold rounded-xl transition-all shadow-md"
+                  className="mt-6 px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 text-[10px] sm:text-xs font-bold rounded-xl transition-all shadow-md"
                 >
                   عرض الكل
                 </button>
@@ -2226,7 +2226,7 @@ export default function App() {
             ) : (
               <>
                 {/* Stream Cards Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 md:gap-5">
                   {streams.map((stream) => {
                     const streamId = stream.stream_id || stream.series_id || '';
                     const imageSrc = stream.stream_icon || stream.cover || '';
@@ -2264,44 +2264,44 @@ export default function App() {
 
                           {/* Fallback layout for empty/failed images */}
                           <div 
-                            className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-gradient-to-b from-[#111827] to-[#070b14]"
+                            className="absolute inset-0 flex flex-col items-center justify-center p-2 sm:p-3 text-center bg-gradient-to-b from-[#111827] to-[#070b14]"
                             style={{ display: imageSrc ? 'none' : 'flex' }}
                           >
                             {activeTab === 'live' ? (
-                              <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
+                              <Tv className="w-6 h-6 sm:w-10 sm:h-10 text-cyan-500/40 mb-1 group-hover:scale-110 transition-transform" />
                             ) : activeTab === 'vod' ? (
-                              <Film className="w-8 h-8 sm:w-10 sm:h-10 text-fuchsia-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
+                              <Film className="w-6 h-6 sm:w-10 sm:h-10 text-fuchsia-500/40 mb-1 group-hover:scale-110 transition-transform" />
                             ) : (
-                              <Clapperboard className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
+                              <Clapperboard className="w-6 h-6 sm:w-10 sm:h-10 text-indigo-500/40 mb-1 group-hover:scale-110 transition-transform" />
                             )}
-                            <span className="text-[10px] sm:text-xs text-gray-500 font-semibold line-clamp-2 px-0.5">
+                            <span className="text-[9px] sm:text-xs text-gray-500 font-semibold line-clamp-2 px-0.5">
                               {stream.name}
                             </span>
                           </div>
 
                           {/* Overlay play button on hover */}
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-lg transform translate-y-3 group-hover:translate-y-0 transition-all duration-300">
-                              <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-black translate-x-0.5" />
+                            <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-lg transform translate-y-3 group-hover:translate-y-0 transition-all duration-300">
+                              <Play className="w-4 h-4 sm:w-6 sm:h-6 fill-black translate-x-0.5" />
                             </div>
                           </div>
 
                           {/* Category ID/badge on top right */}
                           {displayRating && (
-                            <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-md text-[8px] sm:text-[10px] font-black text-amber-400 flex items-center gap-0.5 shadow-md">
+                            <div className="absolute top-1 right-1 px-1 py-0.5 rounded bg-black/75 backdrop-blur-md text-[7px] sm:text-[10px] font-black text-amber-400 flex items-center gap-0.5 shadow-md">
                               ⭐ {displayRating.toFixed(1)}
                             </div>
                           )}
 
                           {/* Type badge on bottom right */}
-                          <div className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-[#030614]/80 backdrop-blur-md border border-white/10 text-[8px] sm:text-[9px] font-bold text-gray-300">
+                          <div className="absolute bottom-1 right-1 px-1.5 sm:px-2 py-0.5 rounded bg-[#030614]/80 backdrop-blur-md border border-white/10 text-[7px] sm:text-[9px] font-bold text-gray-300">
                             {activeTab === 'live' ? 'مباشر' : activeTab === 'vod' ? 'فيلم' : 'مسلسل'}
                           </div>
                         </div>
 
                         {/* Meta container */}
-                        <div className="p-2 sm:p-3 flex flex-col justify-between flex-grow">
-                          <h3 className="text-[11px] sm:text-xs font-bold text-gray-200 group-hover:text-cyan-400 transition-colors line-clamp-2 leading-tight">
+                        <div className="p-1.5 sm:p-3 flex flex-col justify-between flex-grow">
+                          <h3 className="text-[10px] sm:text-xs font-bold text-gray-200 group-hover:text-cyan-400 transition-colors line-clamp-2 leading-tight">
                             {stream.name}
                           </h3>
                         </div>
@@ -2312,8 +2312,8 @@ export default function App() {
 
                 {/* Pagination controls */}
                 {totalPages > 1 && (
-                  <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0b1120]/50 border border-white/5">
-                    <span className="text-xs text-gray-400">
+                  <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-3 sm:p-4 rounded-2xl bg-[#0b1120]/50 border border-white/5">
+                    <span className="text-[10px] sm:text-xs text-gray-400 text-center sm:text-left">
                       عرض النتائج <strong className="text-white">{((page - 1) * LIMIT) + 1} - {Math.min(page * LIMIT, totalItems)}</strong> من أصل <strong className="text-cyan-400">{totalItems}</strong>
                     </span>
 
@@ -2321,23 +2321,23 @@ export default function App() {
                       <button
                         onClick={() => setPage(p => Math.max(p - 1, 1))}
                         disabled={page === 1}
-                        className="p-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
+                        className="p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
                         title="الصفحة السابقة"
                       >
-                        <ChevronRight className="w-5 h-5 text-white" />
+                        <ChevronRight className="w-4 h-5 sm:w-5 sm:h-5 text-white" />
                       </button>
                       
-                      <div className="flex items-center gap-1 px-4 text-xs font-bold text-gray-300">
+                      <div className="flex items-center gap-1 px-2 sm:px-4 text-[10px] sm:text-xs font-bold text-gray-300">
                         <span>صفحة {page} من {totalPages}</span>
                       </div>
 
                       <button
                         onClick={() => setPage(p => Math.min(p + 1, totalPages))}
                         disabled={page === totalPages}
-                        className="p-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
+                        className="p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-xl transition-all cursor-pointer"
                         title="الصفحة التالية"
                       >
-                        <ChevronLeft className="w-5 h-5 text-white" />
+                        <ChevronLeft className="w-4 h-5 sm:w-5 sm:h-5 text-white" />
                       </button>
                     </div>
                   </div>
@@ -2351,19 +2351,19 @@ export default function App() {
 
       {/* SERIES SEASONS & EPISODES MODAL */}
       {selectedSeries && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto">
-          <div className="relative w-full max-w-4xl bg-[#0b1120] border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-[#0b1120] border border-white/15 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
             
             {/* Close button */}
             <button 
               onClick={() => setSelectedSeries(null)}
-              className="absolute top-4 left-4 z-10 p-2.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white transition-colors"
+              className="absolute top-2 sm:top-4 left-2 sm:left-4 z-10 p-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Series Left Column (Meta & Cover) */}
-            <div className="md:w-1/3 bg-[#070b14] p-6 flex flex-col gap-4 border-b md:border-b-0 md:border-l border-white/5 overflow-y-auto">
+            <div className="md:w-1/3 bg-[#070b14] p-4 sm:p-6 flex flex-col gap-4 border-b md:border-b-0 md:border-l border-white/5 overflow-y-auto">
               <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-lg border border-white/5 bg-black">
                 {selectedSeries.stream_icon || selectedSeries.cover ? (
                   <img 
@@ -2373,59 +2373,59 @@ export default function App() {
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-[#0f172a]">
-                    <Clapperboard className="w-16 h-16 text-indigo-500/40 mb-3" />
+                    <Clapperboard className="w-12 h-12 sm:w-16 sm:h-16 text-indigo-500/40 mb-3" />
                     <span className="text-sm font-semibold text-gray-400">{selectedSeries.name}</span>
                   </div>
                 )}
               </div>
 
               <div>
-                <h2 className="text-lg font-black text-white leading-relaxed">{selectedSeries.name}</h2>
+                <h2 className="text-base sm:text-lg font-black text-white leading-relaxed">{selectedSeries.name}</h2>
                 {seriesInfo?.info?.rating && (
-                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/10 text-amber-400 text-xs font-black">
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] sm:text-xs font-black">
                     ⭐ {seriesInfo.info.rating} / 10
                   </div>
                 )}
                 
                 {seriesInfo?.info?.plot && (
                   <div className="mt-4">
-                    <h4 className="text-xs font-bold text-gray-300 flex items-center gap-1">
-                      <Info className="w-3.5 h-3.5 text-indigo-400" />
+                    <h4 className="text-[10px] sm:text-xs font-bold text-gray-300 flex items-center gap-1">
+                      <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-400" />
                       <span>قصة المسلسل:</span>
                     </h4>
-                    <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">{seriesInfo.info.plot}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-400 mt-1.5 leading-relaxed">{seriesInfo.info.plot}</p>
                   </div>
                 )}
 
                 {seriesInfo?.info?.genre && (
-                  <p className="text-xs text-gray-500 mt-3 font-semibold">التصنيف: {seriesInfo.info.genre}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-3 font-semibold">التصنيف: {seriesInfo.info.genre}</p>
                 )}
               </div>
             </div>
 
             {/* Series Right Column (Seasons and Episodes) */}
-            <div className="flex-1 p-6 overflow-y-auto flex flex-col bg-[#0b1120]">
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto flex flex-col bg-[#0b1120]">
               {isLoadingSeries ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
-                  <p className="text-xs text-gray-400">جاري تحميل حلقات المسلسل...</p>
+                  <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-indigo-400" />
+                  <p className="text-[10px] sm:text-xs text-gray-400">جاري تحميل حلقات المسلسل...</p>
                 </div>
               ) : seriesInfo ? (
                 <>
                   {/* Season selector */}
-                  <div className="mb-6">
-                    <h3 className="text-xs font-black text-gray-400 mb-3 flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-cyan-400" />
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="text-[10px] sm:text-xs font-black text-gray-400 mb-2 sm:mb-3 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                       <span>اختر الموسم:</span>
                     </h3>
                     
                     {seriesInfo.seasons && seriesInfo.seasons.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {seriesInfo.seasons.map((season) => (
                           <button
                             key={season.id || season.season_number}
                             onClick={() => setSelectedSeason(season.season_number)}
-                            className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all duration-300 ${
+                            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-extrabold border transition-all duration-300 ${
                               selectedSeason === season.season_number
                                 ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/20'
                                 : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
@@ -2437,12 +2437,12 @@ export default function App() {
                       </div>
                     ) : (
                       // Fallback if seasons list empty but episodes exist
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {Object.keys(seriesInfo.episodes || {}).map((seasonNum) => (
                           <button
                             key={seasonNum}
                             onClick={() => setSelectedSeason(parseInt(seasonNum, 10))}
-                            className={`px-4 py-2 rounded-xl text-xs font-extrabold border transition-all duration-300 ${
+                            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-extrabold border transition-all duration-300 ${
                               selectedSeason === parseInt(seasonNum, 10)
                                 ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
                                 : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
@@ -2457,10 +2457,10 @@ export default function App() {
 
                   {/* Episodes list */}
                   <div className="flex-grow">
-                    <h3 className="text-xs font-black text-gray-400 mb-3">الحلقات المتاحة:</h3>
+                    <h3 className="text-[10px] sm:text-xs font-black text-gray-400 mb-2 sm:mb-3">الحلقات المتاحة:</h3>
                     
                     {seriesInfo.episodes && seriesInfo.episodes[String(selectedSeason)] ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                         {seriesInfo.episodes[String(selectedSeason)].map((ep) => (
                           <div
                             key={ep.id}
@@ -2471,32 +2471,32 @@ export default function App() {
                               ep.container_extension,
                               (ep as any).customUrl
                             )}
-                            className="group/item flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-cyan-500/40 bg-white/5 hover:bg-cyan-500/5 cursor-pointer transition-all duration-300"
+                            className="group/item flex items-center justify-between p-2 sm:p-3 rounded-xl border border-white/5 hover:border-cyan-500/40 bg-white/5 hover:bg-cyan-500/5 cursor-pointer transition-all duration-300"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold text-xs flex items-center justify-center group-hover/item:bg-cyan-500/20 group-hover/item:text-cyan-300 transition-colors">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold text-[10px] sm:text-xs flex items-center justify-center group-hover/item:bg-cyan-500/20 group-hover/item:text-cyan-300 transition-colors">
                                 {ep.episode_num}
                               </div>
-                              <span className="text-xs font-bold text-gray-300 group-hover/item:text-white transition-colors line-clamp-1">
+                              <span className="text-[10px] sm:text-xs font-bold text-gray-300 group-hover/item:text-white transition-colors line-clamp-1">
                                 {ep.title || `الحلقة ${ep.episode_num}`}
                               </span>
                             </div>
                             
-                            <div className="w-7 h-7 rounded-full bg-white/5 text-gray-400 group-hover/item:bg-cyan-500 group-hover/item:text-black flex items-center justify-center transition-all">
-                              <Play className="w-3.5 h-3.5 fill-current translate-x-0.5" />
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/5 text-gray-400 group-hover/item:bg-cyan-500 group-hover/item:text-black flex items-center justify-center transition-all">
+                              <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current translate-x-0.5" />
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-500 py-6 text-center">لا توجد حلقات مضافة لهذا الموسم حتى الآن.</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 py-6 text-center">لا توجد حلقات مضافة لهذا الموسم حتى الآن.</p>
                     )}
                   </div>
                 </>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center">
-                  <AlertCircle className="w-10 h-10 text-gray-500 mb-2" />
-                  <p className="text-xs text-gray-400">فشل تحميل تفاصيل المسلسل. حاول مجدداً.</p>
+                  <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2" />
+                  <p className="text-[10px] sm:text-xs text-gray-400">فشل تحميل تفاصيل المسلسل. حاول مجدداً.</p>
                 </div>
               )}
             </div>
@@ -2507,7 +2507,7 @@ export default function App() {
 
       {/* DETAILED DYNAMIC EXTERNAL PLAYER LAUNCHER VIEW (MyPlayer Launcher Overlays) */}
       {activePlay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030614] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#030614] overflow-hidden">
           {/* Neon background grids */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute inset-0 opacity-25 bg-[linear-gradient(rgba(0,229,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,229,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px]" />
@@ -2515,9 +2515,9 @@ export default function App() {
             <div className="absolute -bottom-[150px] -left-[120px] w-[320px] h-[320px] rounded-full bg-fuchsia-500/10 filter blur-[90px]" />
           </div>
 
-          <div className="relative z-10 w-full max-w-[420px] p-[18px]">
+          <div className="relative z-10 w-full max-w-[400px] sm:max-w-[420px] p-3 sm:p-[18px]">
             {/* Player Card */}
-            <div className="relative w-full min-h-[520px] rounded-[34px] px-[22px] py-[30px] overflow-hidden bg-[#0b1120]/78 border border-cyan-500/18 backdrop-blur-[22px] shadow-[0_0_60px_rgba(0,0,0,0.75),inset_0_0_30px_rgba(0,229,255,0.03)] flex flex-col justify-center">
+            <div className="relative w-full min-h-[460px] sm:min-h-[520px] rounded-[28px] sm:rounded-[34px] px-4 sm:px-[22px] py-5 sm:py-[30px] overflow-hidden bg-[#0b1120]/78 border border-cyan-500/18 backdrop-blur-[22px] shadow-[0_0_60px_rgba(0,0,0,0.75),inset_0_0_30px_rgba(0,229,255,0.03)] flex flex-col justify-center">
               
               {/* Card gradient glow decoration */}
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-cyan-500/4 via-transparent to-fuchsia-500/4" />
@@ -2525,43 +2525,43 @@ export default function App() {
               {/* Close launcher icon */}
               <button 
                 onClick={() => setActivePlay(null)}
-                className="absolute top-4 left-4 z-10 p-2.5 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+                className="absolute top-2 sm:top-4 left-2 sm:left-4 z-10 p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
                 title="إغلاق والرجوع للتصفح"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Central play trigger / Visual rings */}
-              <div className="relative flex items-center justify-center mb-[34px]">
+              <div className="relative flex items-center justify-center mb-5 sm:mb-[34px]">
                 {/* Rotating play ring */}
-                <div className="absolute w-[130px] h-[130px] rounded-full border border-cyan-500/18 animate-[spin_8s_linear_infinite]" />
-                <div className="absolute w-[146px] h-[146px] rounded-full border border-fuchsia-500/15 animate-[spin_12s_linear_infinite_reverse]" />
+                <div className="absolute w-[100px] sm:w-[130px] h-[100px] sm:h-[130px] rounded-full border border-cyan-500/18 animate-[spin_8s_linear_infinite]" />
+                <div className="absolute w-[114px] sm:w-[146px] h-[114px] sm:h-[146px] rounded-full border border-fuchsia-500/15 animate-[spin_12s_linear_infinite_reverse]" />
                 
                 {/* Play circle */}
                 <button
                   onClick={handleLaunchManual}
-                  className="relative w-[95px] h-[95px] rounded-full bg-gradient-to-br from-[#00E5FF] via-[#7C3AED] to-[#D946EF] flex items-center justify-center cursor-pointer transition-all duration-300 shadow-[0_0_45px_rgba(124,58,237,0.75)] hover:scale-105 active:scale-95"
+                  className="relative w-[72px] sm:w-[95px] h-[72px] sm:h-[95px] rounded-full bg-gradient-to-br from-[#00E5FF] via-[#7C3AED] to-[#D946EF] flex items-center justify-center cursor-pointer transition-all duration-300 shadow-[0_0_45px_rgba(124,58,237,0.75)] hover:scale-105 active:scale-95"
                 >
                   {launcherStatus === 'launching' ? (
-                    <Play className="w-[36px] h-[36px] fill-white text-white translate-x-0.5 animate-pulse" />
+                    <Play className="w-[28px] sm:w-[36px] h-[28px] sm:h-[36px] fill-white text-white translate-x-0.5 animate-pulse" />
                   ) : (
-                    <Download className="w-[36px] h-[36px] text-white" />
+                    <Download className="w-[28px] sm:w-[36px] h-[28px] sm:h-[36px] text-white" />
                   )}
                 </button>
               </div>
 
               {/* Details & Status message */}
-              <h2 className={`text-center text-lg font-black mb-2 transition-colors duration-300 ${
+              <h2 className={`text-center text-base sm:text-lg font-black mb-1.5 sm:mb-2 transition-colors duration-300 ${
                 launcherStatus === 'launching' ? 'text-white' : 'text-red-400'
               }`}>
                 {launcherStatus === 'launching' ? 'جاري تشغيل البث...' : 'المشغل غير مثبت'}
               </h2>
 
-              <p className="text-center text-xs text-gray-400 font-semibold mb-3 leading-relaxed px-4 truncate">
+              <p className="text-center text-[10px] sm:text-xs text-gray-400 font-semibold mb-2 sm:mb-3 leading-relaxed px-2 sm:px-4 truncate">
                 {activePlay.name}
               </p>
 
-              <p className="text-center text-sm text-gray-300 leading-[1.9] px-2 mb-1">
+              <p className="text-center text-xs sm:text-sm text-gray-300 leading-[1.7] sm:leading-[1.9] px-2 mb-1">
                 {launcherStatus === 'launching' ? (
                   <>يرجى الانتظار، سيتم تشغيل الفيديو تلقائياً عبر تطبيق <span className="text-[#00E5FF] font-bold">MyPlayer</span></>
                 ) : (
@@ -2570,34 +2570,34 @@ export default function App() {
               </p>
 
               {/* Qualities display badge */}
-              <div className="text-center mb-6 mt-1 flex justify-center gap-1.5">
-                <span className="text-[11px] text-[#00E5FF] bg-[#00E5FF]/15 border border-[#00E5FF]/20 rounded-xl px-3.5 py-0.5 font-extrabold uppercase">
+              <div className="text-center mb-4 sm:mb-6 mt-1 flex justify-center gap-1.5 flex-wrap">
+                <span className="text-[9px] sm:text-[11px] text-[#00E5FF] bg-[#00E5FF]/15 border border-[#00E5FF]/20 rounded-xl px-2.5 sm:px-3.5 py-0.5 font-extrabold uppercase">
                   {activePlay.type === 'live' ? 'LIVE CHANNEL' : activePlay.type === 'vod' ? 'FHD 1080P' : 'HD QUALITY'}
                 </span>
-                <span className="text-[11px] text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/15 rounded-xl px-2.5 py-0.5 font-bold">
+                <span className="text-[9px] sm:text-[11px] text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/15 rounded-xl px-2 sm:px-2.5 py-0.5 font-bold">
                   H264 / AAC
                 </span>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5 sm:gap-3">
                 
                 {/* Primary Button */}
                 <button
                   onClick={handleLaunchManual}
-                  className="w-full h-[54px] rounded-2xl border-none bg-gradient-to-r from-[#00E5FF] to-[#7C3AED] hover:from-[#05cbdf] hover:to-[#6a30ca] text-white text-xs font-black flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(124,58,237,0.45)] transition-all duration-300 active:scale-95 cursor-pointer"
+                  className="w-full h-[46px] sm:h-[54px] rounded-2xl border-none bg-gradient-to-r from-[#00E5FF] to-[#7C3AED] hover:from-[#05cbdf] hover:to-[#6a30ca] text-white text-[10px] sm:text-xs font-black flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(124,58,237,0.45)] transition-all duration-300 active:scale-95 cursor-pointer"
                 >
                   <span>{launcherStatus === 'launching' ? 'تشغيل الآن يدوياً' : 'تحميل التطبيق (APK)'}</span>
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
 
                 {/* Secondary: Copy Mediafire APK Link (only shown in failed state) */}
                 {launcherStatus === 'failed' && (
                   <button
                     onClick={handleCopyDownloadLink}
-                    className="w-full h-[48px] rounded-2xl border border-[#00E5FF]/40 bg-white/4 text-[#00E5FF] text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
+                    className="w-full h-[42px] sm:h-[48px] rounded-2xl border border-[#00E5FF]/40 bg-white/4 text-[#00E5FF] text-[10px] sm:text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
                   >
-                    {copiedLink ? <Check className="w-4.5 h-4.5" /> : <Copy className="w-4.5 h-4.5" />}
+                    {copiedLink ? <Check className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <Copy className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
                     <span>{copiedLink ? '✓ تم نسخ الرابط بنجاح!' : 'نسخ رابط تحميل ميديا فاير'}</span>
                   </button>
                 )}
@@ -2606,9 +2606,9 @@ export default function App() {
                 {launcherStatus === 'failed' && (
                   <button
                     onClick={handleRetryLaunch}
-                    className="w-full h-[48px] rounded-2xl border border-white/10 bg-white/4 text-gray-300 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
+                    className="w-full h-[42px] sm:h-[48px] rounded-2xl border border-white/10 bg-white/4 text-gray-300 hover:text-white text-[10px] sm:text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
                   >
-                    <RotateCcw className="w-4 h-4 animate-spin-slow" />
+                    <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin-slow" />
                     <span>إعادة المحاولة والفتح</span>
                   </button>
                 )}
@@ -2616,7 +2616,7 @@ export default function App() {
                 {/* Return button */}
                 <button
                   onClick={() => setActivePlay(null)}
-                  className="w-full h-[48px] rounded-2xl border border-white/5 bg-white/2 hover:bg-white/5 text-gray-400 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="w-full h-[42px] sm:h-[48px] rounded-2xl border border-white/5 bg-white/2 hover:bg-white/5 text-gray-400 hover:text-white text-[10px] sm:text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <span>الرجوع لتصفح القائمة</span>
                 </button>
@@ -2624,7 +2624,7 @@ export default function App() {
               </div>
 
               {/* Hint text bottom */}
-              <div className="mt-5 text-center text-[11px] text-gray-500 leading-relaxed px-4">
+              <div className="mt-3 sm:mt-5 text-center text-[10px] sm:text-[11px] text-gray-500 leading-relaxed px-2 sm:px-4">
                 {launcherStatus === 'launching' ? (
                   'اختر الجودة من داخل تطبيق MyPlayer بعد فتحه تلقائياً.'
                 ) : (
