@@ -280,6 +280,9 @@ export default function App() {
   const [allLiveChannels, setAllLiveChannels] = useState<any[]>([]);
   const [isLoadingAllLiveChannels, setIsLoadingAllLiveChannels] = useState<boolean>(false);
 
+  // -- NEW: State for current time to compute live status automatically
+  const [now, setNow] = useState(new Date());
+
   // Auto-scroll to override-editor-form when a channel/VOD is selected for editing
   useEffect(() => {
     if (overrideId) {
@@ -430,7 +433,15 @@ export default function App() {
         }
       })
       .catch(err => console.error('Error fetching matches:', err));
-  }, []);;
+  }, []);
+
+  // -- NEW: Update current time every 30 seconds to refresh match status automatically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch categories when activeTab changes
   useEffect(() => {
@@ -802,6 +813,31 @@ export default function App() {
         setOverrideSearchResults([]);
         console.error('Error searching streams for override:', err);
       });
+  };
+
+  // -- NEW: Function to compute display status based on current time
+  const getMatchDisplayStatus = (match: MatchItem): 'live' | 'upcoming' | 'finished' => {
+    // If admin manually set to finished, keep it finished
+    if (match.status === 'finished') return 'finished';
+
+    // Convert match time to 24h format
+    const time24 = arabic12hToTime24(match.time);
+    if (!time24) return match.status || 'upcoming';
+
+    const [hours, minutes] = time24.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return match.status || 'upcoming';
+
+    // Use match date if provided, otherwise today
+    let dateStr = match.date || new Date().toISOString().split('T')[0];
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const matchDateTime = new Date(year, month - 1, day, hours, minutes);
+
+    // Compare with current time
+    if (now.getTime() >= matchDateTime.getTime()) {
+      return 'live';
+    } else {
+      return 'upcoming';
+    }
   };
 
   // Launch deep link internally when activePlay changes
@@ -1803,6 +1839,7 @@ export default function App() {
                             <div className="text-right">
                               <p className="text-[11px] font-bold text-gray-300">{m.time} {m.date ? `(${m.date})` : ''}</p>
                               <div className="flex items-center gap-1.5 mt-1">
+                                {/* Use stored status in admin panel */}
                                 <span className={`w-2 h-2 rounded-full ${m.status === 'live' ? 'bg-red-500 animate-pulse' : m.status === 'upcoming' ? 'bg-amber-500' : 'bg-gray-500'}`} />
                                 <span className="text-[10px] text-gray-400 font-bold">
                                   {m.status === 'live' ? 'مباشر الآن 🔴' : m.status === 'upcoming' ? 'قادمة 🗓️' : 'منتهية 🏁'} - {m.channelName}
@@ -1942,7 +1979,9 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {matches.map((m) => {
-                    const isLive = m.status === 'live';
+                    // Use computed status based on current time
+                    const displayStatus = getMatchDisplayStatus(m);
+                    const isLive = displayStatus === 'live';
                     return (
                       <div
                         key={m.id}
@@ -1960,7 +1999,7 @@ export default function App() {
                         className={`group relative p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
                           isLive 
                             ? 'bg-gradient-to-br from-red-500/10 via-black/40 to-black/60 border-red-500/30 hover:border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.05)] hover:shadow-[0_0_25px_rgba(239,68,68,0.15)]'
-                            : m.status === 'upcoming'
+                            : displayStatus === 'upcoming'
                             ? 'bg-black/30 hover:bg-black/50 border-white/5 hover:border-cyan-500/30'
                             : 'bg-black/20 border-white/5 opacity-60 hover:opacity-80'
                         }`}
@@ -1973,12 +2012,12 @@ export default function App() {
                           <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-black flex items-center gap-1 shadow-sm ${
                             isLive 
                               ? 'bg-red-500 text-white animate-pulse'
-                              : m.status === 'upcoming'
+                              : displayStatus === 'upcoming'
                               ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
                               : 'bg-white/5 text-gray-400'
                           }`}>
                             {isLive && <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />}
-                            <span>{isLive ? 'مباشر الآن 🔴' : m.status === 'upcoming' ? 'مباراة قادمة 🗓️' : 'منتهية 🏁'}</span>
+                            <span>{isLive ? 'مباشر الآن 🔴' : displayStatus === 'upcoming' ? 'مباراة قادمة 🗓️' : 'منتهية 🏁'}</span>
                           </span>
                           <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold bg-white/5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg">
                             {m.time} {m.date ? `| ${m.date}` : ''}
