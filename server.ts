@@ -169,32 +169,7 @@ function loadMatches() {
     if (fs.existsSync(MATCHES_PATH)) {
       matches = JSON.parse(fs.readFileSync(MATCHES_PATH, 'utf-8'));
     } else {
-      matches = [
-        {
-          id: "m1",
-          team1: "الهلال",
-          team2: "النصر",
-          team1Logo: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120",
-          team2Logo: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=120",
-          time: "08:30 مساءً",
-          date: "2026-06-28",
-          channelId: "1003",
-          channelName: "بي إن سبورت 1 Premium",
-          status: "live"
-        },
-        {
-          id: "m2",
-          team1: "ريال مدريد",
-          team2: "برشلونة",
-          team1Logo: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=120",
-          team2Logo: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=120",
-          time: "10:00 مساءً",
-          date: "2026-06-28",
-          channelId: "1001",
-          channelName: "قناة القرآن الكريم بث مباشر من مكة المكرمة HD",
-          status: "upcoming"
-        }
-      ];
+      matches = [];
       fs.writeFileSync(MATCHES_PATH, JSON.stringify(matches, null, 2));
     }
   } catch (err) {
@@ -431,6 +406,9 @@ app.delete('/api/admin/matches/:id', (req, res) => {
     res.status(500).json({ error: true, message: err.message });
   }
 });
+
+
+
 
 
 // 1. Get user and server info

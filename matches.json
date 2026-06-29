@@ -1,0 +1,26 @@
+[
+  {
+    "id": "match_morocco_1",
+    "team1": "هولندا",
+    "team2": "المغرب",
+    "team1Logo": "🇳🇱",
+    "team2Logo": "🇲🇦",
+    "time": "04:00 صباحاً",
+    "date": "2026-06-30",
+    "channelId": "504281",
+    "channelName": "مباراة المغرب (البث الرئيسي)",
+    "status": "upcoming"
+  },
+  {
+    "id": "match_ivory_coast_1",
+    "team1": "كوت ديفوار",
+    "team2": "النرويج",
+    "team1Logo": "🇨🇮",
+    "team2Logo": "🇳🇴",
+    "time": "08:00 مساءً",
+    "date": "2026-06-30",
+    "channelId": "1003",
+    "channelName": "بي إن سبورت 1 Premium",
+    "status": "upcoming"
+  }
+]
