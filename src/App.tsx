@@ -25,7 +25,8 @@ import {
   Trash2,
   Edit,
   Plus,
-  Sliders
+  Sliders,
+  Heart
 } from 'lucide-react';
 
 // Stream interfaces
@@ -43,6 +44,11 @@ interface StreamItem {
   genre?: string;
   releaseDate?: string;
   customUrl?: string; // added for overrides
+}
+
+interface FavoriteItem {
+  stream: StreamItem;
+  type: 'live' | 'vod' | 'series';
 }
 
 interface CategoryItem {
@@ -252,7 +258,50 @@ function isLogoUrl(logoStr?: string): boolean {
 
 export default function App() {
   // Navigation
-  const [activeTab, setActiveTab] = useState<'live' | 'vod' | 'series'>('live');
+  const [activeTab, setActiveTab] = useState<'live' | 'vod' | 'series' | 'favorites'>('live');
+  const [showAllMatches, setShowAllMatches] = useState<boolean>(false);
+
+  // Favorites State
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('iptv_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('iptv_favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const toggleFavorite = (stream: StreamItem, type: 'live' | 'vod' | 'series', e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    const streamId = stream.stream_id || stream.series_id;
+    if (!streamId) return;
+
+    setFavorites(prev => {
+      const strId = String(streamId);
+      const exists = prev.some(f => String(f.stream.stream_id || f.stream.series_id || '') === strId && f.type === type);
+      if (exists) {
+        return prev.filter(f => !(String(f.stream.stream_id || f.stream.series_id || '') === strId && f.type === type));
+      } else {
+        return [...prev, { stream, type }];
+      }
+    });
+  };
+
+  const isFavorite = (streamId: string | number | undefined, type: 'live' | 'vod' | 'series') => {
+    if (!streamId) return false;
+    const strId = String(streamId);
+    return favorites.some(f => {
+      const fId = String(f.stream.stream_id || f.stream.series_id || '');
+      return fId === strId && f.type === type;
+    });
+  };
 
   // Real-time tick to update match statuses automatically when match time is reached
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -270,6 +319,37 @@ export default function App() {
   const [streams, setStreams] = useState<StreamItem[]>([]);
   const [searchVal, setSearchVal] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const displayedCategories = useMemo(() => {
+    if (activeTab === 'favorites') {
+      return [
+        { category_id: 'live', category_name: 'قنوات مباشرة', parent_id: 0 },
+        { category_id: 'vod', category_name: 'أفلام', parent_id: 0 },
+        { category_id: 'series', category_name: 'مسلسلات', parent_id: 0 }
+      ];
+    }
+    return categories;
+  }, [activeTab, categories]);
+
+  const filteredFavorites = useMemo(() => {
+    return favorites.filter(f => {
+      const matchesSearch = f.stream.name.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+      
+      if (selectedCategory === 'all') return true;
+      return f.type === selectedCategory;
+    });
+  }, [favorites, searchQuery, selectedCategory]);
+
+  const displayedStreams = useMemo(() => {
+    if (activeTab === 'favorites') {
+      return filteredFavorites.map(f => ({
+        ...f.stream,
+        _favoriteType: f.type
+      }));
+    }
+    return streams;
+  }, [activeTab, streams, filteredFavorites]);
   
   // Pagination State
   const [page, setPage] = useState<number>(1);
@@ -347,6 +427,26 @@ export default function App() {
 
   // Matches State
   const [matches, setMatches] = useState<MatchItem[]>([]);
+  
+  const sortedMatches = useMemo(() => {
+    return [...matches].sort((a, b) => {
+      const statusA = getDynamicMatchStatus(a, currentTime);
+      const statusB = getDynamicMatchStatus(b, currentTime);
+
+      const getPriority = (status: 'live' | 'upcoming' | 'finished') => {
+        if (status === 'live') return 1;
+        if (status === 'upcoming') return 2;
+        return 3;
+      };
+
+      const priorityDiff = getPriority(statusA) - getPriority(statusB);
+      if (priorityDiff !== 0) return priorityDiff;
+
+      const timeA = getMatchDateTime(a)?.getTime() || 0;
+      const timeB = getMatchDateTime(b)?.getTime() || 0;
+      return timeA - timeB;
+    });
+  }, [matches, currentTime]);
   const fetchMatches = () => {
     fetch('/api/iptv/matches')
       .then(res => res.json())
@@ -557,6 +657,15 @@ export default function App() {
 
   // Fetch categories when activeTab changes
   useEffect(() => {
+    if (activeTab === 'favorites') {
+      setIsLoadingCats(false);
+      setSelectedCategory('all');
+      setPage(1);
+      setSearchVal('');
+      setSearchQuery('');
+      return;
+    }
+
     setIsLoadingCats(true);
     setSelectedCategory('all');
     setPage(1);
@@ -584,6 +693,12 @@ export default function App() {
 
   // Fetch streams when activeTab, category, search, or page changes
   useEffect(() => {
+    if (activeTab === 'favorites') {
+      setIsLoadingStreams(false);
+      setError(null);
+      return;
+    }
+
     setIsLoadingStreams(true);
     setError(null);
 
@@ -2193,26 +2308,8 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {[...matches]
-                    .sort((a, b) => {
-                      const statusA = getDynamicMatchStatus(a, currentTime);
-                      const statusB = getDynamicMatchStatus(b, currentTime);
-
-                      const getPriority = (status: 'live' | 'upcoming' | 'finished') => {
-                        if (status === 'upcoming') return 1;
-                        if (status === 'live') return 2;
-                        return 3;
-                      };
-
-                      const priorityDiff = getPriority(statusA) - getPriority(statusB);
-                      if (priorityDiff !== 0) return priorityDiff;
-
-                      const timeA = getMatchDateTime(a)?.getTime() || 0;
-                      const timeB = getMatchDateTime(b)?.getTime() || 0;
-                      return timeA - timeB;
-                    })
-                    .map((m) => {
-                      const dynamicStatus = getDynamicMatchStatus(m, currentTime);
+                  {(showAllMatches ? sortedMatches : sortedMatches.slice(0, 1)).map((m) => {
+                    const dynamicStatus = getDynamicMatchStatus(m, currentTime);
                     const isLive = dynamicStatus === 'live';
                     return (
                       <div
@@ -2319,6 +2416,25 @@ export default function App() {
                     );
                   })}
                 </div>
+
+                {sortedMatches.length > 1 && (
+                  <div className="mt-5 pt-2 flex justify-center border-t border-white/5">
+                    <button
+                      onClick={() => setShowAllMatches(!showAllMatches)}
+                      className="px-6 py-2.5 bg-gradient-to-r from-cyan-600/20 to-indigo-600/20 hover:from-cyan-600/30 hover:to-indigo-600/30 text-xs sm:text-sm font-black text-cyan-400 hover:text-white border border-cyan-500/30 hover:border-cyan-400 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer shadow-lg shadow-cyan-950/25"
+                    >
+                      {showAllMatches ? (
+                        <>
+                          <span>عرض أقل 👆</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>عرض كل المباريات ({sortedMatches.length}) 👇</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2326,7 +2442,7 @@ export default function App() {
             <div className="mb-6 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
               
               {/* Custom styled tabs */}
-              <div className="flex p-1 bg-[#0b1120]/80 border border-white/5 rounded-xl sm:rounded-2xl md:max-w-md w-full shadow-lg">
+              <div className="flex p-1 bg-[#0b1120]/80 border border-white/5 rounded-xl sm:rounded-2xl md:max-w-xl w-full shadow-lg">
                 <button
                   onClick={() => setActiveTab('live')}
                   className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
@@ -2362,6 +2478,17 @@ export default function App() {
                   <Clapperboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>مسلسلات</span>
                 </button>
+                <button
+                  onClick={() => setActiveTab('favorites')}
+                  className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
+                    activeTab === 'favorites'
+                      ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
+                  <span>المفضلة</span>
+                </button>
               </div>
 
               {/* Categories select and Search form combined */}
@@ -2377,8 +2504,8 @@ export default function App() {
                     disabled={isLoadingCats}
                     className="w-full pr-10 pl-4 py-3 bg-[#0b1120] border border-white/10 rounded-2xl text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 transition-colors cursor-pointer appearance-none"
                   >
-                    <option value="all">كل الأقسام</option>
-                    {categories.map((cat) => (
+                    <option value="all">{activeTab === 'favorites' ? 'كل أنواع المفضلة' : 'كل الأقسام'}</option>
+                    {displayedCategories.map((cat) => (
                       <option key={cat.category_id} value={cat.category_id}>
                         {cat.category_name}
                       </option>
@@ -2396,6 +2523,7 @@ export default function App() {
                     value={searchVal}
                     onChange={(e) => setSearchVal(e.target.value)}
                     placeholder={
+                      activeTab === 'favorites' ? 'ابحث في المفضلة...' :
                       activeTab === 'live' ? 'ابحث عن اسم القناة...' :
                       activeTab === 'vod' ? 'ابحث عن فيلم...' : 'ابحث عن مسلسل...'
                     }
@@ -2444,48 +2572,92 @@ export default function App() {
                   إعادة التحميل والمحاولة مجدداً
                 </button>
               </div>
-            ) : streams.length === 0 ? (
+            ) : (activeTab === 'favorites' ? filteredFavorites.length === 0 : streams.length === 0) ? (
               <div className="my-16 py-16 text-center rounded-3xl border border-white/5 bg-[#0b1120]/30 backdrop-blur-md">
-                <AlertCircle className="w-14 h-14 mx-auto text-gray-500 mb-4" />
-                <p className="text-gray-400 font-bold mb-2">لا توجد نتائج مطابقة لبحثك</p>
-                <p className="text-gray-500 text-xs max-w-sm mx-auto">
-                  تأكد من كتابة الكلمة بشكل صحيح، أو اختر قسماً آخراً من القائمة المنسدلة للتصفح.
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchVal('');
-                    setSearchQuery('');
-                    setSelectedCategory('all');
-                    setPage(1);
-                  }}
-                  className="mt-6 px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 text-xs font-bold rounded-xl transition-all shadow-md"
-                >
-                  عرض الكل
-                </button>
+                {activeTab === 'favorites' ? (
+                  <>
+                    <Heart className="w-14 h-14 mx-auto text-rose-500/50 mb-4 animate-pulse" />
+                    <p className="text-gray-400 font-bold mb-2">
+                      {searchQuery ? 'لا توجد نتائج مطابقة لبحثك في المفضلة' : 'قائمة المفضلة فارغة حالياً'}
+                    </p>
+                    <p className="text-gray-500 text-xs max-w-sm mx-auto">
+                      {searchQuery 
+                        ? 'تأكد من كتابة الكلمة بشكل صحيح، أو اختر تصنيفاً آخر للتصفح.' 
+                        : 'يمكنك إضافة قنواتك وأفلامك ومسلسلاتك المفضلة بالنقر على أيقونة القلب على أي بطاقة لتصل إليها بسرعة هنا.'}
+                    </p>
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setSearchVal('');
+                          setSearchQuery('');
+                          setSelectedCategory('all');
+                        }}
+                        className="mt-6 px-6 py-2.5 bg-gradient-to-r from-rose-600 to-indigo-600 text-xs font-bold rounded-xl transition-all shadow-md shadow-rose-500/10"
+                      >
+                        عرض كل المفضلة
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-14 h-14 mx-auto text-gray-500 mb-4" />
+                    <p className="text-gray-400 font-bold mb-2">لا توجد نتائج مطابقة لبحثك</p>
+                    <p className="text-gray-500 text-xs max-w-sm mx-auto">
+                      تأكد من كتابة الكلمة بشكل صحيح، أو اختر قسماً آخراً من القائمة المنسدلة للتصفح.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearchVal('');
+                        setSearchQuery('');
+                        setSelectedCategory('all');
+                        setPage(1);
+                      }}
+                      className="mt-6 px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 text-xs font-bold rounded-xl transition-all shadow-md"
+                    >
+                      عرض الكل
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <>
                 {/* Stream Cards Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4 md:gap-5">
-                  {streams.map((stream) => {
+                  {displayedStreams.map((stream) => {
                     const streamId = stream.stream_id || stream.series_id || '';
                     const imageSrc = stream.stream_icon || stream.cover || '';
                     const displayRating = stream.rating ? parseFloat(stream.rating) : null;
+                    const streamType = activeTab === 'favorites' ? (stream as any)._favoriteType : activeTab;
 
                     return (
                       <div
                         key={`${activeTab}-${streamId}`}
                         onClick={() => {
-                          if (activeTab === 'series') {
+                          if (streamType === 'series') {
                             handleOpenSeries(stream);
                           } else {
-                            handlePlayStream(stream.name, streamId, activeTab, stream.container_extension, stream.customUrl);
+                            handlePlayStream(stream.name, streamId, streamType, stream.container_extension, stream.customUrl);
                           }
                         }}
                         className="group relative flex flex-col h-full bg-[#0b1120]/70 border border-white/10 hover:border-cyan-500/50 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] hover:-translate-y-1"
                       >
                         {/* Media container */}
                         <div className="relative aspect-[3/4] bg-[#070b14] overflow-hidden">
+                          {/* Favorite Toggle Button */}
+                          <button
+                            onClick={(e) => toggleFavorite(stream, streamType, e)}
+                            className="absolute top-2 left-2 z-10 p-1.5 sm:p-2 rounded-xl bg-black/60 hover:bg-black/95 border border-white/10 backdrop-blur-md text-rose-500 hover:scale-105 active:scale-95 transition-all shadow-md"
+                            title="إضافة للمفضلة"
+                          >
+                            <Heart 
+                              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 ${
+                                isFavorite(streamId, streamType) 
+                                  ? 'fill-rose-500 text-rose-500 scale-110' 
+                                  : 'text-white/80 hover:text-rose-400'
+                              }`} 
+                            />
+                          </button>
+
                           {imageSrc ? (
                             <img
                               src={imageSrc}
@@ -2507,9 +2679,9 @@ export default function App() {
                             className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-gradient-to-b from-[#111827] to-[#070b14]"
                             style={{ display: imageSrc ? 'none' : 'flex' }}
                           >
-                            {activeTab === 'live' ? (
+                            {streamType === 'live' ? (
                               <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
-                            ) : activeTab === 'vod' ? (
+                            ) : streamType === 'vod' ? (
                               <Film className="w-8 h-8 sm:w-10 sm:h-10 text-fuchsia-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
                             ) : (
                               <Clapperboard className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
@@ -2535,7 +2707,7 @@ export default function App() {
 
                           {/* Type badge on bottom right */}
                           <div className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-[#030614]/80 backdrop-blur-md border border-white/10 text-[8px] sm:text-[9px] font-bold text-gray-300">
-                            {activeTab === 'live' ? 'مباشر' : activeTab === 'vod' ? 'فيلم' : 'مسلسل'}
+                            {streamType === 'live' ? 'مباشر' : streamType === 'vod' ? 'فيلم' : 'مسلسل'}
                           </div>
                         </div>
 
@@ -2551,7 +2723,7 @@ export default function App() {
                 </div>
 
                 {/* Pagination controls */}
-                {totalPages > 1 && (
+                {activeTab !== 'favorites' && totalPages > 1 && (
                   <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0b1120]/50 border border-white/5">
                     <span className="text-xs text-gray-400">
                       عرض النتائج <strong className="text-white">{((page - 1) * LIMIT) + 1} - {Math.min(page * LIMIT, totalItems)}</strong> من أصل <strong className="text-cyan-400">{totalItems}</strong>
