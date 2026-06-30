@@ -9,6 +9,7 @@ import {
   Layers, 
   Loader2, 
   Play, 
+  PlayCircle,
   AlertCircle, 
   X, 
   Download, 
@@ -260,6 +261,21 @@ export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState<'live' | 'vod' | 'series' | 'favorites'>('live');
   const [showAllMatches, setShowAllMatches] = useState<boolean>(false);
+
+  // Start.io Special Ad overlay states
+  const [showInterstitialAd, setShowInterstitialAd] = useState<boolean>(false);
+  const [interstitialTargetTab, setInterstitialTargetTab] = useState<'live' | 'vod' | 'series' | 'favorites' | null>(null);
+  const [interstitialCountdown, setInterstitialCountdown] = useState<number>(3);
+
+  const [showPrePlayAd, setShowPrePlayAd] = useState<boolean>(false);
+  const [prePlayTargetStream, setPrePlayTargetStream] = useState<{
+    name: string;
+    id: string | number;
+    type: 'live' | 'vod' | 'series';
+    containerExt?: string;
+    customUrl?: string;
+  } | null>(null);
+  const [prePlayCountdown, setPrePlayCountdown] = useState<number>(3);
 
   // Favorites State
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
@@ -760,9 +776,75 @@ export default function App() {
       });
   };
 
-  // Build stream URL & Launch MyPlayer
-  const handlePlayStream = (
-    name: string, 
+  // ==================== START.IO AD OPERATIONS ====================
+
+  // Interstitial page transition countdown effect
+  useEffect(() => {
+    if (!showInterstitialAd) return;
+    
+    if (interstitialCountdown <= 0) {
+      setShowInterstitialAd(false);
+      if (interstitialTargetTab) {
+        setActiveTab(interstitialTargetTab);
+        setSelectedCategory('all');
+        setPage(1);
+      }
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setInterstitialCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [showInterstitialAd, interstitialCountdown, interstitialTargetTab]);
+
+  // Pre-Play countdown effect before stream starts
+  useEffect(() => {
+    if (!showPrePlayAd) return;
+
+    if (prePlayCountdown <= 0) {
+      setShowPrePlayAd(false);
+      if (prePlayTargetStream) {
+        const { name, id, type, containerExt, customUrl } = prePlayTargetStream;
+        let streamUrl = customUrl;
+        if (!streamUrl) {
+          const ext = containerExt || (type === 'live' ? 'ts' : type === 'vod' ? 'mp4' : 'mkv');
+          const host = serverConfig.host;
+          const user = serverConfig.username;
+          const pass = serverConfig.password;
+
+          if (type === 'live') {
+            streamUrl = `${host}/live/${user}/${pass}/${id}.${ext}`;
+          } else if (type === 'vod') {
+            streamUrl = `${host}/movie/${user}/${pass}/${id}.${ext}`;
+          } else {
+            streamUrl = `${host}/series/${user}/${pass}/${id}.${ext}`;
+          }
+        }
+        setActivePlay({ name, url: streamUrl, type });
+        setLauncherStatus(autoPlayEnabled ? 'launching' : 'idle');
+      }
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setPrePlayCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [showPrePlayAd, prePlayCountdown, prePlayTargetStream, autoPlayEnabled, serverConfig]);
+
+  // Instant tab switcher (No ads, no delay)
+  const handleTabChangeWithAd = (newTab: 'live' | 'vod' | 'series' | 'favorites') => {
+    if (newTab === activeTab) return;
+    setActiveTab(newTab);
+    setSelectedCategory('all');
+    setPage(1);
+  };
+
+  // Build direct stream URL for playback or download
+  const getDirectStreamUrl = (
     id: string | number, 
     type: 'live' | 'vod' | 'series', 
     containerExt?: string,
@@ -784,6 +866,30 @@ export default function App() {
       }
     }
 
+    if (type === 'vod' || type === 'series') {
+      const targetExt = type === 'series' ? '.mkv' : '.mp4';
+      const lastDot = streamUrl.lastIndexOf('.');
+      if (lastDot !== -1 && lastDot > streamUrl.lastIndexOf('/')) {
+        const ext = streamUrl.substring(lastDot).toLowerCase();
+        if (ext !== targetExt) {
+          streamUrl = streamUrl.substring(0, lastDot) + targetExt;
+        }
+      } else {
+        streamUrl = streamUrl + targetExt;
+      }
+    }
+    return streamUrl;
+  };
+
+  // Build stream URL & Launch MyPlayer directly (No ads, no delay)
+  const handlePlayStream = (
+    name: string, 
+    id: string | number, 
+    type: 'live' | 'vod' | 'series', 
+    containerExt?: string,
+    customUrl?: string
+  ) => {
+    const streamUrl = getDirectStreamUrl(id, type, containerExt, customUrl);
     setActivePlay({ name, url: streamUrl, type });
     setLauncherStatus(autoPlayEnabled ? 'launching' : 'idle');
   };
@@ -1144,21 +1250,22 @@ export default function App() {
       });
   };
 
-  // Helper to generate the direct IPTV MP4 link for movies and series episodes
+  // Helper to generate the direct IPTV link (.mp4 for movies and .mkv for series episodes)
   const getMp4DownloadUrl = () => {
     if (!activePlay) return '';
     let targetUrl = activePlay.url;
     
-    // Convert extension to mp4 if needed for movies or series episodes
+    // Convert extension to mp4 for movies or mkv for series episodes
     if (activePlay.type === 'vod' || activePlay.type === 'series') {
+      const targetExt = activePlay.type === 'series' ? '.mkv' : '.mp4';
       const lastDot = activePlay.url.lastIndexOf('.');
       if (lastDot !== -1 && lastDot > activePlay.url.lastIndexOf('/')) {
         const ext = activePlay.url.substring(lastDot).toLowerCase();
-        if (ext !== '.mp4') {
-          targetUrl = activePlay.url.substring(0, lastDot) + '.mp4';
+        if (ext !== targetExt) {
+          targetUrl = activePlay.url.substring(0, lastDot) + targetExt;
         }
       } else {
-        targetUrl = activePlay.url + '.mp4';
+        targetUrl = activePlay.url + targetExt;
       }
     }
     return targetUrl;
@@ -1586,7 +1693,7 @@ export default function App() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">شعار الفريق الأول (رابط أو إيموجي 🇳🇱)</label>
+                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">شعار الفريق الأول (رابط أو إيموجي)</label>
                         <input
                           type="text"
                           value={matchTeam1Logo}
@@ -1596,7 +1703,7 @@ export default function App() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">شعار الفريق الثاني (رابط أو إيموجي 🇲🇦)</label>
+                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">شعار الفريق الثاني (رابط أو إيموجي)</label>
                         <input
                           type="text"
                           value={matchTeam2Logo}
@@ -2230,12 +2337,19 @@ export default function App() {
             {/* Header section with glass effect */}
             <header className="mb-6 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0b1120]/60 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2.5 sm:p-3.5 bg-gradient-to-tr from-cyan-500 to-fuchsia-600 rounded-xl sm:rounded-2xl shadow-lg shadow-cyan-500/20 animate-pulse">
-                  <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
+                <div className="flex-shrink-0 w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-lg shadow-cyan-500/15">
+                  <img
+                    src="/src/assets/images/stadium_tv_logo_1782769049552.jpg"
+                    alt="استاد TV"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <div>
-                  <h1 className="text-lg sm:text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300">
-                    بوابة ارينا لايف
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-indigo-300 flex items-center gap-2">
+                    <span>🏟️</span>
+                    <span>استاد TV</span>
+                    <span>📺</span>
                   </h1>
                 </div>
               </div>
@@ -2259,6 +2373,8 @@ export default function App() {
                 </div>
               ) : null}
             </header>
+
+            {/* Ads removed */}
 
             {/* Demo Mode Alert Banner */}
             {subscription?.user_info?.isDemo && (
@@ -2435,6 +2551,8 @@ export default function App() {
                     </button>
                   </div>
                 )}
+
+                {/* Ads removed */}
               </div>
             )}
 
@@ -2444,7 +2562,7 @@ export default function App() {
               {/* Custom styled tabs */}
               <div className="flex p-1 bg-[#0b1120]/80 border border-white/5 rounded-xl sm:rounded-2xl md:max-w-xl w-full shadow-lg">
                 <button
-                  onClick={() => setActiveTab('live')}
+                  onClick={() => handleTabChangeWithAd('live')}
                   className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'live'
                       ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/20'
@@ -2457,7 +2575,7 @@ export default function App() {
                   </span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('vod')}
+                  onClick={() => handleTabChangeWithAd('vod')}
                   className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'vod'
                       ? 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 text-white shadow-lg shadow-fuchsia-500/20'
@@ -2468,7 +2586,7 @@ export default function App() {
                   <span>أفلام</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('series')}
+                  onClick={() => handleTabChangeWithAd('series')}
                   className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'series'
                       ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
@@ -2479,7 +2597,7 @@ export default function App() {
                   <span>مسلسلات</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('favorites')}
+                  onClick={() => handleTabChangeWithAd('favorites')}
                   className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1.5 sm:py-3 sm:px-4 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-300 ${
                     activeTab === 'favorites'
                       ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20'
@@ -2541,6 +2659,8 @@ export default function App() {
                 </div>
               </form>
             </div>
+
+            {/* Ads removed */}
 
             {/* Content list & grids */}
             {isLoadingStreams ? (
@@ -2756,6 +2876,8 @@ export default function App() {
                 )}
               </>
             )}
+
+            {/* Ads removed */}
           </div>
         )}
 
@@ -2892,8 +3014,27 @@ export default function App() {
                               </span>
                             </div>
                             
-                            <div className="w-7 h-7 rounded-full bg-white/5 text-gray-400 group-hover/item:bg-cyan-500 group-hover/item:text-black flex items-center justify-center transition-all">
-                              <Play className="w-3.5 h-3.5 fill-current translate-x-0.5" />
+                            <div className="flex items-center gap-2">
+                              {/* Direct Download Button */}
+                              <a
+                                href={getDirectStreamUrl(
+                                  ep.id,
+                                  'series',
+                                  ep.container_extension,
+                                  (ep as any).customUrl
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-7 h-7 rounded-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm"
+                                title="تحميل الحلقة"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </a>
+
+                              <div className="w-7 h-7 rounded-full bg-white/5 text-gray-400 group-hover/item:bg-cyan-500 group-hover/item:text-black flex items-center justify-center transition-all">
+                                <Play className="w-3.5 h-3.5 fill-current translate-x-0.5" />
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -2909,6 +3050,8 @@ export default function App() {
                   <p className="text-xs text-gray-400">فشل تحميل تفاصيل المسلسل. حاول مجدداً.</p>
                 </div>
               )}
+
+              {/* Ads removed */}
             </div>
 
           </div>
@@ -2973,11 +3116,7 @@ export default function App() {
                     : 'المشغل غير مثبت'}
               </h2>
 
-              <p className="text-center text-xs text-gray-400 font-semibold mb-3 leading-relaxed px-4 truncate">
-                {activePlay.name}
-              </p>
-
-              <p className="text-center text-sm text-gray-300 leading-[1.9] px-2 mb-1">
+              <p className="text-center text-sm text-gray-300 leading-[1.9] px-2 mb-4 mt-2">
                 {launcherStatus === 'launching' ? (
                   <>يرجى الانتظار، سيتم تشغيل الفيديو تلقائياً عبر تطبيق <span className="text-[#00E5FF] font-bold">MyPlayer</span></>
                 ) : launcherStatus === 'idle' ? (
@@ -2987,14 +3126,27 @@ export default function App() {
                 )}
               </p>
 
-              {/* Qualities display badge */}
-              <div className="text-center mb-6 mt-1 flex justify-center gap-1.5">
-                <span className="text-[11px] text-[#00E5FF] bg-[#00E5FF]/15 border border-[#00E5FF]/20 rounded-xl px-3.5 py-0.5 font-extrabold uppercase">
-                  {activePlay.type === 'live' ? 'LIVE CHANNEL' : activePlay.type === 'vod' ? 'FHD 1080P' : 'HD QUALITY'}
-                </span>
-                <span className="text-[11px] text-fuchsia-400 bg-fuchsia-500/10 border border-fuchsia-500/15 rounded-xl px-2.5 py-0.5 font-bold">
-                  H264 / AAC
-                </span>
+              {/* Stream name and compact download button row */}
+              <div className="flex items-center justify-between gap-4 p-4 mb-4 rounded-2xl bg-white/4 border border-white/5" dir="rtl">
+                <div className="flex flex-col text-right truncate min-w-0 flex-1">
+                  <span className="text-[10px] text-gray-500 font-bold mb-0.5">الاسم:</span>
+                  <span className="text-xs font-black text-gray-200 truncate" title={activePlay.name}>
+                    {activePlay.name}
+                  </span>
+                </div>
+                
+                {(activePlay.type === 'vod' || activePlay.type === 'series') && (
+                  <a
+                    href={getMp4DownloadUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 h-[34px] px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-[10px] sm:text-[11px] font-black flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.25)] transition-all duration-300 active:scale-95 cursor-pointer"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>تحميل مباشر</span>
+                  </a>
+                )}
               </div>
 
               {/* Auto-Play Toggle Settings Option */}
@@ -3031,20 +3183,6 @@ export default function App() {
                   <ExternalLink className="w-4 h-4" />
                 </button>
 
-                {/* Download movie/episode in mp4 format */}
-                {(activePlay.type === 'vod' || activePlay.type === 'series') && (
-                  <a
-                    href={getMp4DownloadUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full h-[54px] rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-black flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all duration-300 active:scale-95 cursor-pointer"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <Download className="w-4.5 h-4.5" />
-                    <span>تحميل أو تشغيل مباشر MP4</span>
-                  </a>
-                )}
-
                 {/* Secondary: Copy Mediafire APK Link (only shown in failed state) */}
                 {launcherStatus === 'failed' && (
                   <button
@@ -3077,6 +3215,8 @@ export default function App() {
 
               </div>
 
+              {/* Ads removed */}
+
               {/* Hint text bottom */}
               <div className="mt-5 text-center text-[11px] text-gray-500 leading-relaxed px-4">
                 {(activePlay.type === 'vod' || activePlay.type === 'series') ? (
@@ -3092,6 +3232,8 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* All ad overlays removed */}
 
     </div>
   );
