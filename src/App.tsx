@@ -404,7 +404,7 @@ export default function App() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   // Constants
-  const APK_URL = "https://www.mediafire.com/file/e54348sqtudpdmi/%D9%85%D8%Bا%D8%BA%D9%84+%D9%81%D8%AF%D9%8 Regular+%D9%81%D9%8A%D8%AF%D9%8I%D9%88%D9%87.apk/file";
+  const APK_URL = "https://www.mediafire.com/file/e54348sqtudpdmi/%D9%85%D8%B4%D8%BA%D9%84+%D9%81%D8%AF%D9%8A%D9%88%D9%87.apk/file";
   // Fallback Mediafire URL from user code
   const SAFE_APK_URL = "https://www.mediafire.com/file/e54348sqtudpdmi/%D9%85%D8%B4%D8%BA%D9%84+%D9%81%D8%AF%D9%8A%D9%88%D9%87.apk/file";
 
@@ -2742,7 +2742,7 @@ export default function App() {
             ) : (
               <>
                 {/* Stream Cards Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-2 sm:gap-3 md:gap-4">
                   {displayedStreams.map((stream) => {
                     const streamId = stream.stream_id || stream.series_id || '';
                     const imageSrc = stream.stream_icon || stream.cover || '';
@@ -2759,18 +2759,18 @@ export default function App() {
                             handlePlayStream(stream.name, streamId, streamType, stream.container_extension, stream.customUrl);
                           }
                         }}
-                        className="group relative flex flex-col h-full bg-[#0b1120]/70 border border-white/10 hover:border-cyan-500/50 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] hover:-translate-y-1"
+                        className="group relative flex flex-col h-full bg-[#0b1120]/70 border border-white/10 hover:border-cyan-500/50 rounded-lg sm:rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_8px_24px_rgba(6,182,212,0.12)] hover:-translate-y-0.5"
                       >
                         {/* Media container */}
                         <div className="relative aspect-[3/4] bg-[#070b14] overflow-hidden">
                           {/* Favorite Toggle Button */}
                           <button
                             onClick={(e) => toggleFavorite(stream, streamType, e)}
-                            className="absolute top-2 left-2 z-10 p-1.5 sm:p-2 rounded-xl bg-black/60 hover:bg-black/95 border border-white/10 backdrop-blur-md text-rose-500 hover:scale-105 active:scale-95 transition-all shadow-md"
+                            className="absolute top-1.5 left-1.5 z-10 p-1 rounded-lg bg-black/60 hover:bg-black/95 border border-white/10 backdrop-blur-md text-rose-500 hover:scale-105 active:scale-95 transition-all shadow-md"
                             title="إضافة للمفضلة"
                           >
                             <Heart 
-                              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 ${
+                              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-all duration-300 ${
                                 isFavorite(streamId, streamType) 
                                   ? 'fill-rose-500 text-rose-500 scale-110' 
                                   : 'text-white/80 hover:text-rose-400'
@@ -2789,51 +2789,55 @@ export default function App() {
                                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                                 if (fallback) fallback.style.display = 'flex';
                               }}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className={`transition-all duration-500 ${
+                                streamType === 'live'
+                                  ? 'w-12 h-12 sm:w-16 sm:h-16 absolute inset-0 m-auto object-contain rounded-xl bg-white/5 p-1.5 border border-white/5 group-hover:scale-110 shadow-[0_4px_12px_rgba(0,0,0,0.4)]'
+                                  : 'w-full h-full object-cover group-hover:scale-105'
+                              }`}
                               referrerPolicy="no-referrer"
                             />
                           ) : null}
 
                           {/* Fallback layout for empty/failed images */}
                           <div 
-                            className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center bg-gradient-to-b from-[#111827] to-[#070b14]"
+                            className="absolute inset-0 flex flex-col items-center justify-center p-2 text-center bg-gradient-to-b from-[#111827] to-[#070b14]"
                             style={{ display: imageSrc ? 'none' : 'flex' }}
                           >
                             {streamType === 'live' ? (
-                              <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
+                              <Tv className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-500/40 mb-1 group-hover:scale-110 transition-transform" />
                             ) : streamType === 'vod' ? (
-                              <Film className="w-8 h-8 sm:w-10 sm:h-10 text-fuchsia-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
+                              <Film className="w-6 h-6 sm:w-8 sm:h-8 text-fuchsia-500/40 mb-1 group-hover:scale-110 transition-transform" />
                             ) : (
-                              <Clapperboard className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-500/40 mb-1.5 group-hover:scale-110 transition-transform" />
+                              <Clapperboard className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-500/40 mb-1 group-hover:scale-110 transition-transform" />
                             )}
-                            <span className="text-[10px] sm:text-xs text-gray-500 font-semibold line-clamp-2 px-0.5">
+                            <span className="text-[9px] sm:text-[10px] text-gray-500 font-semibold line-clamp-2 px-0.5">
                               {stream.name}
                             </span>
                           </div>
 
                           {/* Overlay play button on hover */}
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-lg transform translate-y-3 group-hover:translate-y-0 transition-all duration-300">
-                              <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-black translate-x-0.5" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                              <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black translate-x-0.5" />
                             </div>
                           </div>
 
                           {/* Category ID/badge on top right */}
                           {displayRating && (
-                            <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-md text-[8px] sm:text-[10px] font-black text-amber-400 flex items-center gap-0.5 shadow-md">
+                            <div className="absolute top-1 right-1 px-1 py-0.5 rounded bg-black/75 backdrop-blur-md text-[7px] sm:text-[9px] font-black text-amber-400 flex items-center gap-0.5 shadow-md">
                               ⭐ {displayRating.toFixed(1)}
                             </div>
                           )}
 
                           {/* Type badge on bottom right */}
-                          <div className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-[#030614]/80 backdrop-blur-md border border-white/10 text-[8px] sm:text-[9px] font-bold text-gray-300">
+                          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-[#030614]/80 backdrop-blur-md border border-white/10 text-[7px] sm:text-[8px] font-bold text-gray-300">
                             {streamType === 'live' ? 'مباشر' : streamType === 'vod' ? 'فيلم' : 'مسلسل'}
                           </div>
                         </div>
 
                         {/* Meta container */}
-                        <div className="p-2 sm:p-3 flex flex-col justify-between flex-grow">
-                          <h3 className="text-[11px] sm:text-xs font-bold text-gray-200 group-hover:text-cyan-400 transition-colors line-clamp-2 leading-tight">
+                        <div className="p-1.5 sm:p-2 flex flex-col justify-between flex-grow">
+                          <h3 className="text-[10px] sm:text-[11px] font-bold text-gray-200 group-hover:text-cyan-400 transition-colors line-clamp-2 leading-tight">
                             {stream.name}
                           </h3>
                         </div>
@@ -3060,7 +3064,7 @@ export default function App() {
 
       {/* DETAILED DYNAMIC EXTERNAL PLAYER LAUNCHER VIEW (MyPlayer Launcher Overlays) */}
       {activePlay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030614] overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030614] overflow-y-auto py-8 sm:py-12">
           {/* Neon background grids */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute inset-0 opacity-25 bg-[linear-gradient(rgba(0,229,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,229,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px]" />
@@ -3068,9 +3072,9 @@ export default function App() {
             <div className="absolute -bottom-[150px] -left-[120px] w-[320px] h-[320px] rounded-full bg-fuchsia-500/10 filter blur-[90px]" />
           </div>
 
-          <div className="relative z-10 w-full max-w-[420px] p-[18px]">
+          <div className="relative z-10 w-full max-w-[420px] p-2 sm:p-[18px] my-auto">
             {/* Player Card */}
-            <div className="relative w-full min-h-[520px] rounded-[34px] px-[22px] py-[30px] overflow-hidden bg-[#0b1120]/78 border border-cyan-500/18 backdrop-blur-[22px] shadow-[0_0_60px_rgba(0,0,0,0.75),inset_0_0_30px_rgba(0,229,255,0.03)] flex flex-col justify-center">
+            <div className="relative w-full min-h-[480px] sm:min-h-[520px] rounded-[28px] sm:rounded-[34px] px-5 sm:px-[22px] py-7 sm:py-[30px] overflow-hidden bg-[#0b1120]/78 border border-cyan-500/18 backdrop-blur-[22px] shadow-[0_0_60px_rgba(0,0,0,0.75),inset_0_0_30px_rgba(0,229,255,0.03)] flex flex-col justify-center">
               
               {/* Card gradient glow decoration */}
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-cyan-500/4 via-transparent to-fuchsia-500/4" />
@@ -3078,35 +3082,35 @@ export default function App() {
               {/* Close launcher icon */}
               <button 
                 onClick={() => setActivePlay(null)}
-                className="absolute top-4 left-4 z-10 p-2.5 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+                className="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 z-10 p-2 sm:p-2.5 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
                 title="إغلاق والرجوع للتصفح"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
               </button>
 
               {/* Central play trigger / Visual rings */}
-              <div className="relative flex items-center justify-center mb-[34px]">
+              <div className="relative flex items-center justify-center mb-6 sm:mb-[34px] mt-2">
                 {/* Rotating play ring */}
-                <div className="absolute w-[130px] h-[130px] rounded-full border border-cyan-500/18 animate-[spin_8s_linear_infinite]" />
-                <div className="absolute w-[146px] h-[146px] rounded-full border border-fuchsia-500/15 animate-[spin_12s_linear_infinite_reverse]" />
+                <div className="absolute w-[110px] h-[110px] sm:w-[130px] sm:h-[130px] rounded-full border border-cyan-500/18 animate-[spin_8s_linear_infinite]" />
+                <div className="absolute w-[124px] h-[124px] sm:w-[146px] sm:h-[146px] rounded-full border border-fuchsia-500/15 animate-[spin_12s_linear_infinite_reverse]" />
                 
                 {/* Play circle */}
                 <button
                   onClick={handleLaunchManual}
-                  className="relative w-[95px] h-[95px] rounded-full bg-gradient-to-br from-[#00E5FF] via-[#7C3AED] to-[#D946EF] flex items-center justify-center cursor-pointer transition-all duration-300 shadow-[0_0_45px_rgba(124,58,237,0.75)] hover:scale-105 active:scale-95"
+                  className="relative w-[80px] h-[80px] sm:w-[95px] sm:h-[95px] rounded-full bg-gradient-to-br from-[#00E5FF] via-[#7C3AED] to-[#D946EF] flex items-center justify-center cursor-pointer transition-all duration-300 shadow-[0_0_45px_rgba(124,58,237,0.75)] hover:scale-105 active:scale-95"
                 >
                   {launcherStatus === 'launching' ? (
-                    <Play className="w-[36px] h-[36px] fill-white text-white translate-x-0.5 animate-pulse" />
+                    <Play className="w-[28px] h-[28px] sm:w-[36px] sm:h-[36px] fill-white text-white translate-x-0.5 animate-pulse" />
                   ) : launcherStatus === 'idle' ? (
-                    <Play className="w-[36px] h-[36px] fill-white text-white translate-x-0.5" />
+                    <Play className="w-[28px] h-[28px] sm:w-[36px] sm:h-[36px] fill-white text-white translate-x-0.5" />
                   ) : (
-                    <Download className="w-[36px] h-[36px] text-white" />
+                    <Download className="w-[28px] h-[28px] sm:w-[36px] sm:h-[36px] text-white" />
                   )}
                 </button>
               </div>
 
               {/* Details & Status message */}
-              <h2 className={`text-center text-lg font-black mb-2 transition-colors duration-300 ${
+              <h2 className={`text-center text-base sm:text-lg font-black mb-1.5 sm:mb-2 transition-colors duration-300 ${
                 launcherStatus === 'launching' || launcherStatus === 'idle' ? 'text-white' : 'text-red-400'
               }`}>
                 {launcherStatus === 'launching' 
@@ -3116,7 +3120,7 @@ export default function App() {
                     : 'المشغل غير مثبت'}
               </h2>
 
-              <p className="text-center text-sm text-gray-300 leading-[1.9] px-2 mb-4 mt-2">
+              <p className="text-center text-xs sm:text-sm text-gray-300 leading-[1.8] sm:leading-[1.9] px-1 sm:px-2 mb-3.5 sm:mb-4 mt-1">
                 {launcherStatus === 'launching' ? (
                   <>يرجى الانتظار، سيتم تشغيل الفيديو تلقائياً عبر تطبيق <span className="text-[#00E5FF] font-bold">MyPlayer</span></>
                 ) : launcherStatus === 'idle' ? (
@@ -3127,9 +3131,9 @@ export default function App() {
               </p>
 
               {/* Stream name and compact download button row */}
-              <div className="flex items-center justify-between gap-4 p-4 mb-4 rounded-2xl bg-white/4 border border-white/5" dir="rtl">
+              <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-white/4 border border-white/5" dir="rtl">
                 <div className="flex flex-col text-right truncate min-w-0 flex-1">
-                  <span className="text-[10px] text-gray-500 font-bold mb-0.5">الاسم:</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold mb-0.5">الاسم:</span>
                   <span className="text-xs font-black text-gray-200 truncate" title={activePlay.name}>
                     {activePlay.name}
                   </span>
@@ -3140,17 +3144,17 @@ export default function App() {
                     href={getMp4DownloadUrl()}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="shrink-0 h-[34px] px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-[10px] sm:text-[11px] font-black flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.25)] transition-all duration-300 active:scale-95 cursor-pointer"
+                    className="shrink-0 h-[30px] sm:h-[34px] px-3 sm:px-3.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-[9px] sm:text-[11px] font-black flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.25)] transition-all duration-300 active:scale-95 cursor-pointer"
                     style={{ textDecoration: 'none' }}
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span>تحميل مباشر</span>
                   </a>
                 )}
               </div>
 
               {/* Auto-Play Toggle Settings Option */}
-              <div className="flex items-center justify-between px-4 py-2.5 mb-5 rounded-2xl bg-white/4 border border-white/5" dir="rtl">
+              <div className="flex items-center justify-between px-3.5 sm:px-4 py-2 sm:py-2.5 mb-4 sm:mb-5 rounded-xl sm:rounded-2xl bg-white/4 border border-white/5" dir="rtl">
                 <span className="text-xs font-semibold text-gray-300">التشغيل التلقائي للمشغل</span>
                 <button
                   dir="ltr"
@@ -3159,37 +3163,37 @@ export default function App() {
                     setAutoPlayEnabled(nextVal);
                     localStorage.setItem('autoPlayEnabled', String(nextVal));
                   }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  className={`relative inline-flex h-5 w-9 sm:h-6 sm:w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                     autoPlayEnabled ? 'bg-[#00E5FF]' : 'bg-gray-700'
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      autoPlayEnabled ? 'translate-x-5' : 'translate-x-0'
+                    className={`pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      autoPlayEnabled ? 'translate-x-4 sm:translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5 sm:gap-3">
                 
                 {/* Primary Button */}
                 <button
                   onClick={handleLaunchManual}
-                  className="w-full h-[54px] rounded-2xl border-none bg-gradient-to-r from-[#00E5FF] to-[#7C3AED] hover:from-[#05cbdf] hover:to-[#6a30ca] text-white text-xs font-black flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(124,58,237,0.45)] transition-all duration-300 active:scale-95 cursor-pointer"
+                  className="w-full h-[48px] sm:h-[54px] rounded-xl sm:rounded-2xl border-none bg-gradient-to-r from-[#00E5FF] to-[#7C3AED] hover:from-[#05cbdf] hover:to-[#6a30ca] text-white text-xs font-black flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_10px_30px_rgba(124,58,237,0.45)] transition-all duration-300 active:scale-95 cursor-pointer"
                 >
                   <span>{launcherStatus === 'launching' || launcherStatus === 'idle' ? 'تشغيل الآن يدوياً' : 'تحميل التطبيق (APK)'}</span>
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
 
                 {/* Secondary: Copy Mediafire APK Link (only shown in failed state) */}
                 {launcherStatus === 'failed' && (
                   <button
                     onClick={handleCopyDownloadLink}
-                    className="w-full h-[48px] rounded-2xl border border-[#00E5FF]/40 bg-white/4 text-[#00E5FF] text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
+                    className="w-full h-[44px] sm:h-[48px] rounded-xl sm:rounded-2xl border border-[#00E5FF]/40 bg-white/4 text-[#00E5FF] text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
                   >
-                    {copiedLink ? <Check className="w-4.5 h-4.5" /> : <Copy className="w-4.5 h-4.5" />}
+                    {copiedLink ? <Check className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <Copy className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
                     <span>{copiedLink ? '✓ تم نسخ الرابط بنجاح!' : 'نسخ رابط تحميل ميديا فاير'}</span>
                   </button>
                 )}
@@ -3198,7 +3202,7 @@ export default function App() {
                 {launcherStatus === 'failed' && (
                   <button
                     onClick={handleRetryLaunch}
-                    className="w-full h-[48px] rounded-2xl border border-white/10 bg-white/4 text-gray-300 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
+                    className="w-full h-[44px] sm:h-[48px] rounded-xl sm:rounded-2xl border border-white/10 bg-white/4 text-gray-300 hover:text-white text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4 animate-spin-slow" />
                     <span>إعادة المحاولة والفتح</span>
@@ -3208,7 +3212,7 @@ export default function App() {
                 {/* Return button */}
                 <button
                   onClick={() => setActivePlay(null)}
-                  className="w-full h-[48px] rounded-2xl border border-white/5 bg-white/2 hover:bg-white/5 text-gray-400 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="w-full h-[44px] sm:h-[48px] rounded-xl sm:rounded-2xl border border-white/5 bg-white/2 hover:bg-white/5 text-gray-400 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <span>الرجوع لتصفح القائمة</span>
                 </button>
