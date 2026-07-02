@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
+import { createClient } from '@supabase/supabase-js';
 
 const resolvedFilename = typeof (globalThis as any).__filename !== 'undefined' 
   ? (globalThis as any).__filename 
@@ -21,7 +22,8 @@ app.use(express.json());
 let config = {
   host: "http://vo5px.top",
   username: "5252761676",
-  password: "6582429481"
+  password: "6582429481",
+  useSupabase: false
 };
 
 // Mock Fallback Data when remote server is offline (e.g. 503 Service Unavailable)
@@ -121,6 +123,13 @@ interface OverrideItem {
 }
 let overrides: Record<string, OverrideItem> = {};
 
+interface CategoryOverrideItem {
+  id: string;
+  type: string;
+  name: string;
+}
+let categoryOverrides: Record<string, CategoryOverrideItem> = {};
+
 interface MatchItem {
   id: string;
   team1: string;
@@ -138,6 +147,25 @@ let matches: MatchItem[] = [];
 const CONFIG_PATH = path.join(process.cwd(), 'config.json');
 const OVERRIDES_PATH = path.join(process.cwd(), 'overrides.json');
 const MATCHES_PATH = path.join(process.cwd(), 'matches.json');
+const CATEGORY_OVERRIDES_PATH = path.join(process.cwd(), 'category_overrides.json');
+
+// Initialize Supabase Client dynamically
+let supabaseClient: any = null;
+function getSupabaseClient() {
+  if (!supabaseClient) {
+    const url = process.env.SUPABASE_URL || '';
+    const key = process.env.SUPABASE_KEY || '';
+    if (url && key) {
+      try {
+        supabaseClient = createClient(url, key);
+        console.log('Successfully initialized Supabase client!');
+      } catch (err) {
+        console.error('Failed to initialize Supabase client:', err);
+      }
+    }
+  }
+  return supabaseClient;
+}
 
 // Sync configuration on startup
 function loadConfig() {
@@ -152,7 +180,20 @@ function loadConfig() {
   }
 }
 
-function loadOverrides() {
+function loadCategoryOverrides() {
+  try {
+    if (fs.existsSync(CATEGORY_OVERRIDES_PATH)) {
+      categoryOverrides = JSON.parse(fs.readFileSync(CATEGORY_OVERRIDES_PATH, 'utf-8'));
+    } else {
+      fs.writeFileSync(CATEGORY_OVERRIDES_PATH, JSON.stringify(categoryOverrides, null, 2));
+    }
+  } catch (err) {
+    console.error('Error loading category overrides file:', err);
+  }
+}
+
+async function loadOverrides() {
+  // 1. Load local file first as fallback
   try {
     if (fs.existsSync(OVERRIDES_PATH)) {
       overrides = JSON.parse(fs.readFileSync(OVERRIDES_PATH, 'utf-8'));
@@ -162,9 +203,87 @@ function loadOverrides() {
   } catch (err) {
     console.error('Error loading overrides file:', err);
   }
+
+  // 2. Try to sync with Supabase if configured
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      console.log('Fetching overrides from Supabase...');
+      const { data, error } = await supabase.from('overrides').select('*');
+      if (error) {
+        console.warn('Supabase fetch error for overrides (missing table or invalid schema):', error.message);
+      } else if (data && Array.isArray(data)) {
+        console.log(`Fetched ${data.length} overrides from Supabase!`);
+        data.forEach((row: any) => {
+          overrides[String(row.id)] = {
+            id: String(row.id),
+            name: row.name || undefined,
+            icon: row.icon || undefined,
+            streamUrl: row.streamUrl || undefined
+          };
+        });
+        // Save merged back to local storage for speed/robustness
+        fs.writeFileSync(OVERRIDES_PATH, JSON.stringify(overrides, null, 2));
+      }
+    } catch (err: any) {
+      console.error('Error syncing overrides with Supabase:', err.message);
+    }
+  }
 }
 
-function loadMatches() {
+async function saveOverrideToSupabase(item: OverrideItem) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    console.log(`Saving override ${item.id} to Supabase...`);
+    const { error } = await supabase.from('overrides').upsert({
+      id: item.id,
+      name: item.name || null,
+      icon: item.icon || null,
+      streamUrl: item.streamUrl || null
+    });
+    if (error) {
+      console.error(`Error saving override ${item.id} to Supabase:`, error.message);
+      if (error.message.includes('relation') && error.message.includes('does not exist')) {
+        console.warn('⚠️ Supabase Table "overrides" does not exist. Please create it in your Supabase SQL Editor with:\n' +
+          'CREATE TABLE overrides (\n' +
+          '  id TEXT PRIMARY KEY,\n' +
+          '  name TEXT,\n' +
+          '  icon TEXT,\n' +
+          '  streamUrl TEXT\n' +
+          ');\n' +
+          'ALTER TABLE overrides ENABLE ROW LEVEL SECURITY;\n' +
+          'CREATE POLICY "Allow public read" ON overrides FOR SELECT USING (true);\n' +
+          'CREATE POLICY "Allow public all" ON overrides FOR ALL USING (true);');
+      }
+    } else {
+      console.log(`Successfully saved override ${item.id} to Supabase!`);
+    }
+  } catch (err: any) {
+    console.error('Failed to upsert override to Supabase:', err.message);
+  }
+}
+
+async function deleteOverrideFromSupabase(id: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    console.log(`Deleting override ${id} from Supabase...`);
+    const { error } = await supabase.from('overrides').delete().eq('id', id);
+    if (error) {
+      console.error(`Error deleting override ${id} from Supabase:`, error.message);
+    } else {
+      console.log(`Successfully deleted override ${id} from Supabase!`);
+    }
+  } catch (err: any) {
+    console.error('Failed to delete override from Supabase:', err.message);
+  }
+}
+
+async function loadMatches() {
+  // 1. Load local file first as fallback
   try {
     if (fs.existsSync(MATCHES_PATH)) {
       matches = JSON.parse(fs.readFileSync(MATCHES_PATH, 'utf-8'));
@@ -175,9 +294,104 @@ function loadMatches() {
   } catch (err) {
     console.error('Error loading matches file:', err);
   }
+
+  // 2. Try to sync with Supabase if configured
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      console.log('Fetching matches from Supabase...');
+      const { data, error } = await supabase.from('matches').select('*');
+      if (error) {
+        console.warn('Supabase fetch error for matches (missing table or invalid schema):', error.message);
+      } else if (data && Array.isArray(data)) {
+        console.log(`Fetched ${data.length} matches from Supabase!`);
+        matches = data.map((row: any) => ({
+          id: row.id,
+          team1: row.team1,
+          team2: row.team2,
+          team1Logo: row.team1Logo || undefined,
+          team2Logo: row.team2Logo || undefined,
+          time: row.time,
+          date: row.date || undefined,
+          channelId: row.channelId,
+          channelName: row.channelName,
+          status: row.status || undefined
+        }));
+        // Save merged back to local storage
+        fs.writeFileSync(MATCHES_PATH, JSON.stringify(matches, null, 2));
+      }
+    } catch (err: any) {
+      console.error('Error syncing matches with Supabase:', err.message);
+    }
+  }
+}
+
+async function saveMatchToSupabase(match: MatchItem) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    console.log(`Saving match ${match.id} to Supabase...`);
+    const { error } = await supabase.from('matches').upsert({
+      id: match.id,
+      team1: match.team1,
+      team2: match.team2,
+      team1Logo: match.team1Logo || null,
+      team2Logo: match.team2Logo || null,
+      time: match.time,
+      date: match.date || null,
+      channelId: match.channelId,
+      channelName: match.channelName,
+      status: match.status || null
+    });
+    if (error) {
+      console.error(`Error saving match ${match.id} to Supabase:`, error.message);
+      if (error.message.includes('relation') && error.message.includes('does not exist')) {
+        console.warn('⚠️ Supabase Table "matches" does not exist. Please create it in your Supabase SQL Editor with:\n' +
+          'CREATE TABLE matches (\n' +
+          '  id TEXT PRIMARY KEY,\n' +
+          '  team1 TEXT,\n' +
+          '  team2 TEXT,\n' +
+          '  "team1Logo" TEXT,\n' +
+          '  "team2Logo" TEXT,\n' +
+          '  time TEXT,\n' +
+          '  date TEXT,\n' +
+          '  "channelId" TEXT,\n' +
+          '  "channelName" TEXT,\n' +
+          '  status TEXT\n' +
+          ');\n' +
+          'ALTER TABLE matches ENABLE ROW LEVEL SECURITY;\n' +
+          'CREATE POLICY "Allow public read" ON matches FOR SELECT USING (true);\n' +
+          'CREATE POLICY "Allow public all" ON matches FOR ALL USING (true);');
+      }
+    } else {
+      console.log(`Successfully saved match ${match.id} to Supabase!`);
+    }
+  } catch (err: any) {
+    console.error('Failed to upsert match to Supabase:', err.message);
+  }
+}
+
+async function deleteMatchFromSupabase(id: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    console.log(`Deleting match ${id} from Supabase...`);
+    const { error } = await supabase.from('matches').delete().eq('id', id);
+    if (error) {
+      console.error(`Error deleting match ${id} from Supabase:`, error.message);
+    } else {
+      console.log(`Successfully deleted match ${id} from Supabase!`);
+    }
+  } catch (err: any) {
+    console.error('Failed to delete match from Supabase:', err.message);
+  }
 }
 
 loadConfig();
+loadCategoryOverrides();
+// We make these load functions asynchronous, but launch them in the background
 loadOverrides();
 loadMatches();
 
@@ -288,12 +502,17 @@ app.get('/api/admin/config', (req, res) => {
 });
 
 app.post('/api/admin/config', (req, res) => {
-  const { host, username, password } = req.body;
+  const { host, username, password, useSupabase } = req.body;
   if (!host || !username || !password) {
     return res.status(400).json({ error: true, message: 'All connection params are required' });
   }
 
-  config = { host, username, password };
+  config = { 
+    host, 
+    username, 
+    password, 
+    useSupabase: typeof useSupabase === 'boolean' ? useSupabase : false 
+  };
   try {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
     // Clear all cache on credential changes
@@ -313,15 +532,21 @@ app.post('/api/admin/overrides', (req, res) => {
     return res.status(400).json({ error: true, message: 'Item ID is required for overriding' });
   }
 
-  overrides[String(id)] = {
+  const overrideItem: OverrideItem = {
     id: String(id),
     name: name || undefined,
     icon: icon || undefined,
     streamUrl: streamUrl || undefined
   };
 
+  overrides[String(id)] = overrideItem;
+
   try {
     fs.writeFileSync(OVERRIDES_PATH, JSON.stringify(overrides, null, 2));
+    
+    // Sync with Supabase asynchronously
+    saveOverrideToSupabase(overrideItem);
+
     // Invalidate cached streams lists and detailed views to reflect changes immediately
     for (const key in cacheStore) {
       if (key.startsWith('streams-') || key.startsWith('series-info-')) {
@@ -344,12 +569,67 @@ app.delete('/api/admin/overrides/:id', (req, res) => {
 
   try {
     fs.writeFileSync(OVERRIDES_PATH, JSON.stringify(overrides, null, 2));
+
+    // Sync with Supabase asynchronously
+    deleteOverrideFromSupabase(String(id));
+
     for (const key in cacheStore) {
       if (key.startsWith('streams-') || key.startsWith('series-info-')) {
         delete cacheStore[key];
       }
     }
     res.json({ success: true, overrides: Object.values(overrides) });
+  } catch (err: any) {
+    res.status(500).json({ error: true, message: err.message });
+  }
+});
+
+// Admin API Category Overrides CRUD
+app.get('/api/admin/category-overrides', (req, res) => {
+  res.json({ error: false, categoryOverrides: Object.values(categoryOverrides) });
+});
+
+app.post('/api/admin/category-overrides', (req, res) => {
+  const { id, type, name } = req.body;
+  if (!id || !type || !name) {
+    return res.status(400).json({ error: true, message: 'ID, type, and name are required for overriding a category' });
+  }
+
+  const key = `${type}_${id}`;
+  categoryOverrides[key] = {
+    id: String(id),
+    type: String(type),
+    name: String(name)
+  };
+
+  try {
+    fs.writeFileSync(CATEGORY_OVERRIDES_PATH, JSON.stringify(categoryOverrides, null, 2));
+    
+    // Invalidate cached categories list to reflect changes immediately
+    delete cacheStore[`categories-${type}`];
+    
+    res.json({ error: false, categoryOverrides: Object.values(categoryOverrides) });
+  } catch (err: any) {
+    res.status(500).json({ error: true, message: err.message });
+  }
+});
+
+app.delete('/api/admin/category-overrides/:type/:id', (req, res) => {
+  const { type, id } = req.params;
+  if (!type || !id) {
+    return res.status(400).json({ error: true, message: 'Type and ID are required' });
+  }
+
+  const key = `${type}_${id}`;
+  delete categoryOverrides[key];
+
+  try {
+    fs.writeFileSync(CATEGORY_OVERRIDES_PATH, JSON.stringify(categoryOverrides, null, 2));
+
+    // Invalidate cached categories list
+    delete cacheStore[`categories-${type}`];
+
+    res.json({ error: false, categoryOverrides: Object.values(categoryOverrides) });
   } catch (err: any) {
     res.status(500).json({ error: true, message: err.message });
   }
@@ -390,6 +670,10 @@ app.post('/api/admin/matches', (req, res) => {
 
   try {
     fs.writeFileSync(MATCHES_PATH, JSON.stringify(matches, null, 2));
+
+    // Sync with Supabase asynchronously
+    saveMatchToSupabase(matchData);
+
     res.json({ success: true, matches });
   } catch (err: any) {
     res.status(500).json({ error: true, message: err.message });
@@ -401,6 +685,10 @@ app.delete('/api/admin/matches/:id', (req, res) => {
   matches = matches.filter(m => m.id !== id);
   try {
     fs.writeFileSync(MATCHES_PATH, JSON.stringify(matches, null, 2));
+
+    // Sync with Supabase asynchronously
+    deleteMatchFromSupabase(String(id));
+
     res.json({ success: true, matches });
   } catch (err: any) {
     res.status(500).json({ error: true, message: err.message });
@@ -408,7 +696,142 @@ app.delete('/api/admin/matches/:id', (req, res) => {
 });
 
 
+// --- SUPABASE BULK SYNC ENGINE ---
 
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
+async function syncIPTVToSupabase() {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Supabase integration is not fully configured. Please ensure SUPABASE_URL and SUPABASE_KEY are correct.');
+  }
+
+  console.log('🔄 Starting full IPTV to Supabase synchronization...');
+
+  // 1. Sync Categories
+  const categoryTypes = ['live', 'vod', 'series'];
+  const allCategoriesToInsert: any[] = [];
+
+  for (const type of categoryTypes) {
+    const action = type === 'live' ? 'get_live_categories' 
+                 : type === 'vod' ? 'get_vod_categories' 
+                 : 'get_series_categories';
+    try {
+      console.log(`Fetching ${type} categories from IPTV...`);
+      const cats = await fetchWithTimeout(`${getBaseUrl()}&action=${action}`, {}, 15000);
+      if (Array.isArray(cats)) {
+        cats.forEach((c: any) => {
+          allCategoriesToInsert.push({
+            id: String(c.category_id),
+            name: c.category_name,
+            parent_id: c.parent_id ? Number(c.parent_id) : 0,
+            type: type
+          });
+        });
+      }
+    } catch (err: any) {
+      console.error(`Failed to fetch ${type} categories from IPTV:`, err.message);
+    }
+  }
+
+  if (allCategoriesToInsert.length > 0) {
+    console.log(`Upserting ${allCategoriesToInsert.length} categories to Supabase...`);
+    const chunks = chunkArray(allCategoriesToInsert, 100);
+    for (const chunk of chunks) {
+      const { error } = await supabase.from('categories').upsert(chunk);
+      if (error) {
+        console.error('Error upserting categories chunk:', error.message);
+        if (error.message.includes('relation') && error.message.includes('does not exist')) {
+          throw new Error('Table "categories" does not exist in your Supabase database. Please create it first.');
+        }
+        throw error;
+      }
+    }
+    console.log('✅ Categories synchronization complete.');
+  }
+
+  // 2. Sync Streams & Series
+  const streamTypes = ['live', 'vod', 'series'];
+  let totalStreamsSynced = 0;
+
+  for (const type of streamTypes) {
+    const action = type === 'live' ? 'get_live_streams' 
+                 : type === 'vod' ? 'get_vod_streams' 
+                 : 'get_series';
+    try {
+      console.log(`Fetching ${type} streams from IPTV...`);
+      const streams = await fetchWithTimeout(`${getBaseUrl()}&action=${action}`, {}, 25000);
+      if (Array.isArray(streams)) {
+        console.log(`Fetched ${streams.length} ${type} items. Preparing for Supabase...`);
+        const streamsToInsert = streams.map((s: any) => {
+          const id = String(s.stream_id || s.series_id || '');
+          const icon = s.stream_icon || s.cover || '';
+          return {
+            stream_id: id,
+            category_id: String(s.category_id || ''),
+            name: s.name || '',
+            stream_icon: icon,
+            container_extension: s.container_extension || '',
+            type: type,
+            rating: s.rating ? String(s.rating) : '',
+            added: s.added ? String(s.added) : '',
+            custom_url: s.customUrl || null
+          };
+        }).filter(s => s.stream_id); // ensure valid ID
+
+        console.log(`Upserting ${streamsToInsert.length} ${type} items to Supabase in chunks...`);
+        const chunks = chunkArray(streamsToInsert, 200);
+        let count = 0;
+        for (const chunk of chunks) {
+          const { error } = await supabase.from('streams').upsert(chunk);
+          if (error) {
+            console.error(`Error upserting ${type} streams chunk:`, error.message);
+            if (error.message.includes('relation') && error.message.includes('does not exist')) {
+              throw new Error('Table "streams" does not exist in your Supabase database. Please create it first.');
+            }
+            throw error;
+          }
+          count += chunk.length;
+        }
+        totalStreamsSynced += count;
+        console.log(`✅ Synced ${count} of ${streamsToInsert.length} ${type} items.`);
+      }
+    } catch (err: any) {
+      console.error(`Failed to sync ${type} streams:`, err.message);
+    }
+  }
+
+  console.log(`🎉 Synchronization completed! Total streams synced: ${totalStreamsSynced}`);
+  return { success: true, totalCategories: allCategoriesToInsert.length, totalStreams: totalStreamsSynced };
+}
+
+
+// --- API ROUTES ---
+
+// Sync trigger route
+app.post('/api/admin/supabase-sync', async (req, res) => {
+  try {
+    const result = await syncIPTVToSupabase();
+    // Clear local caches to force newly synced data to take effect
+    for (const key in cacheStore) {
+      delete cacheStore[key];
+    }
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    console.error('Supabase synchronization endpoint failed:', err.message);
+    res.status(500).json({ 
+      error: true, 
+      message: err.message,
+      sql: true
+    });
+  }
+});
 
 
 // 1. Get user and server info
@@ -424,6 +847,22 @@ app.get('/api/iptv/info', async (req, res) => {
   }
 });
 
+function applyCategoryOverrides(categoriesList: any[], type: string): any[] {
+  if (!Array.isArray(categoriesList)) return categoriesList;
+  return categoriesList.map(cat => {
+    const catId = String(cat.category_id);
+    const key = `${type}_${catId}`;
+    const override = categoryOverrides[key];
+    if (override) {
+      return {
+        ...cat,
+        category_name: override.name
+      };
+    }
+    return cat;
+  });
+}
+
 // 2. Get categories
 app.get('/api/iptv/categories', async (req, res) => {
   const { type } = req.query; // 'live' | 'vod' | 'series'
@@ -431,6 +870,36 @@ app.get('/api/iptv/categories', async (req, res) => {
     return res.status(400).json({ error: true, message: 'Invalid category type' });
   }
 
+  // 1. Try to fetch from Supabase if configured and enabled
+  const supabase = getSupabaseClient();
+  if (supabase && config.useSupabase) {
+    try {
+      console.log(`Fetching categories for type "${type}" from Supabase...`);
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('type', type);
+      
+      if (!error && data && data.length > 0) {
+        console.log(`Successfully loaded ${data.length} categories from Supabase!`);
+        // Map back to expected structure: category_id, category_name, parent_id
+        const mapped = data.map((c: any) => ({
+          category_id: c.id,
+          category_name: c.name,
+          parent_id: c.parent_id
+        }));
+        return res.json(applyCategoryOverrides(mapped, type as string));
+      } else if (error) {
+        console.warn('Supabase categories fetch error, falling back to IPTV API/cache:', error.message);
+      } else {
+        console.log('No categories in Supabase, falling back to IPTV API/cache...');
+      }
+    } catch (err: any) {
+      console.warn('Failed to query categories from Supabase, falling back to IPTV API/cache:', err.message);
+    }
+  }
+
+  // 2. Fallback to IPTV Server
   const action = type === 'live' ? 'get_live_categories' 
                : type === 'vod' ? 'get_vod_categories' 
                : 'get_series_categories';
@@ -439,11 +908,11 @@ app.get('/api/iptv/categories', async (req, res) => {
     const data = await getCachedData(`categories-${type}`, CACHE_TTL_LONG, async () => {
       return await fetchWithTimeout(`${getBaseUrl()}&action=${action}`);
     });
-    res.json(data);
+    res.json(applyCategoryOverrides(data, type as string));
   } catch (err: any) {
     console.warn(`IPTV categories request failed for type ${type}. Using mock fallback data.`, err.message);
     const mockCats = MOCK_CATEGORIES[type as 'live' | 'vod' | 'series'] || [];
-    res.json(mockCats);
+    res.json(applyCategoryOverrides(mockCats, type as string));
   }
 });
 
@@ -472,12 +941,76 @@ app.get('/api/iptv/streams', async (req, res) => {
     return res.status(400).json({ error: true, message: 'Invalid stream type' });
   }
 
+  const pageNum = parseInt(page as string, 10) || 1;
+  const limitNum = parseInt(limit as string, 10) || 30;
+
+  // 1. Try to load from Supabase if configured and enabled
+  const supabase = getSupabaseClient();
+  if (supabase && config.useSupabase) {
+    try {
+      console.log(`Querying ${type} streams from Supabase...`);
+      let query = supabase
+        .from('streams')
+        .select('*', { count: 'exact' })
+        .eq('type', type);
+
+      if (category_id && category_id !== 'all' && category_id !== '') {
+        query = query.eq('category_id', String(category_id));
+      }
+
+      if (search && (search as string).trim() !== '') {
+        query = query.ilike('name', `%${(search as string).trim()}%`);
+      }
+
+      // Paginate in the cloud!
+      const start = (pageNum - 1) * limitNum;
+      const end = start + limitNum - 1;
+      query = query.range(start, end);
+
+      const { data, error, count } = await query;
+
+      if (!error && data && data.length > 0) {
+        console.log(`Loaded ${data.length} streams of type ${type} from Supabase! Total count: ${count}`);
+        
+        // Map back to expected structure, applying overrides
+        const mappedItems = data.map((s: any) => {
+          const item = {
+            num: s.num || '',
+            name: s.name,
+            stream_id: type !== 'series' ? s.stream_id : undefined,
+            series_id: type === 'series' ? s.stream_id : undefined,
+            stream_icon: type !== 'series' ? s.stream_icon : undefined,
+            cover: type === 'series' ? s.stream_icon : undefined,
+            container_extension: s.container_extension || '',
+            category_id: s.category_id,
+            rating: s.rating,
+            added: s.added,
+            customUrl: s.custom_url || undefined
+          };
+          return applyOverridesToItem(item);
+        });
+
+        return res.json({
+          items: mappedItems,
+          total: count || mappedItems.length,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil((count || mappedItems.length) / limitNum)
+        });
+      } else if (error) {
+        console.warn('Supabase streams query error, falling back to IPTV API/cache:', error.message);
+      } else {
+        console.log('No streams in Supabase, falling back to IPTV API/cache...');
+      }
+    } catch (err: any) {
+      console.warn('Failed to query streams from Supabase, falling back to IPTV API/cache:', err.message);
+    }
+  }
+
+  // 2. Fallback to IPTV Server
   const action = type === 'live' ? 'get_live_streams' 
                : type === 'vod' ? 'get_vod_streams' 
                : 'get_series';
-
-  const pageNum = parseInt(page as string, 10) || 1;
-  const limitNum = parseInt(limit as string, 10) || 30;
 
   try {
     // Fetch all streams for this type (cached to ensure high speed)

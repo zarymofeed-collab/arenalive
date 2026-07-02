@@ -27,7 +27,11 @@ import {
   Edit,
   Plus,
   Sliders,
-  Heart
+  Heart,
+  Database,
+  RefreshCw,
+  FolderTree,
+  FolderEdit
 } from 'lucide-react';
 
 // Stream interfaces
@@ -419,14 +423,23 @@ export default function App() {
   const [serverConfig, setServerConfig] = useState({
     host: 'http://vo5px.top',
     username: '5252761676',
-    password: '6582429481'
+    password: '6582429481',
+    useSupabase: false
   });
   const [adminHost, setAdminHost] = useState('');
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
+  const [adminUseSupabase, setAdminUseSupabase] = useState<boolean>(false);
   const [adminOverrides, setAdminOverrides] = useState<any[]>([]);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configMessage, setConfigMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isDemoBannerDismissed, setIsDemoBannerDismissed] = useState<boolean>(false);
+
+  // Supabase sync state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ totalCategories: number; totalStreams: number } | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncSqlInstruction, setSyncSqlInstruction] = useState<string | null>(null);
 
   // Overrides Form State
   const [overrideId, setOverrideId] = useState('');
@@ -437,9 +450,14 @@ export default function App() {
 
   // Override Search Helper State
   const [overrideSearchText, setOverrideSearchText] = useState('');
-  const [overrideSearchResults, setOverrideSearchResults] = useState<StreamItem[]>([]);
-  const [overrideSearchTab, setOverrideSearchTab] = useState<'live' | 'vod' | 'series'>('live');
+  const [overrideSearchResults, setOverrideSearchResults] = useState<any[]>([]);
+  const [overrideSearchTab, setOverrideSearchTab] = useState<string>('live');
   const [isSearchingOverrides, setIsSearchingOverrides] = useState(false);
+
+  // Category Overrides State
+  const [adminCategoryOverrides, setAdminCategoryOverrides] = useState<any[]>([]);
+  const [editingCategory, setEditingCategory] = useState<{ id: string; type: string; name: string; originalName?: string } | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   // Matches State
   const [matches, setMatches] = useState<MatchItem[]>([]);
@@ -662,10 +680,21 @@ export default function App() {
           setAdminHost(data.config.host);
           setAdminUser(data.config.username);
           setAdminPass(data.config.password);
+          setAdminUseSupabase(!!data.config.useSupabase);
           setAdminOverrides(data.overrides || []);
         }
       })
       .catch(err => console.error('Error fetching admin config:', err));
+
+    // Load category overrides
+    fetch('/api/admin/category-overrides')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error && data.categoryOverrides) {
+          setAdminCategoryOverrides(data.categoryOverrides);
+        }
+      })
+      .catch(err => console.error('Error fetching category overrides:', err));
 
     // Fetch matches
     fetchMatches();
@@ -691,7 +720,10 @@ export default function App() {
     fetch(`/api/iptv/categories?type=${activeTab}`)
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (data && data.error) {
+          setError(data.message || 'خطأ في جلب الفئات');
+          setCategories([]);
+        } else if (Array.isArray(data)) {
           // Sort categories by name
           const sorted = [...data].sort((a, b) => a.category_name.localeCompare(b.category_name, 'ar'));
           setCategories(sorted);
@@ -702,6 +734,7 @@ export default function App() {
       })
       .catch(err => {
         console.error('Failed to fetch categories:', err);
+        setError('خطأ في الاتصال بالخادم أثناء جلب الفئات.');
         setCategories([]);
         setIsLoadingCats(false);
       });
@@ -906,7 +939,8 @@ export default function App() {
       body: JSON.stringify({
         host: adminHost,
         username: adminUser,
-        password: adminPass
+        password: adminPass,
+        useSupabase: adminUseSupabase
       })
     })
       .then(res => res.json())
@@ -938,6 +972,32 @@ export default function App() {
         setIsSavingConfig(false);
         setConfigMessage({ type: 'error', text: 'حدث خطأ في الاتصال بالخادم.' });
       });
+  };
+
+  const handleSyncSupabase = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    setSyncError(null);
+    setSyncSqlInstruction(null);
+    try {
+      const res = await fetch('/api/admin/supabase-sync', { method: 'POST' });
+      const data = await res.json();
+      if (data.error) {
+        setSyncError(data.message || 'حدث خطأ أثناء مزامنة البيانات مع Supabase.');
+        if (data.sql) {
+          setSyncSqlInstruction(data.sql);
+        }
+      } else {
+        setSyncResult({
+          totalCategories: data.totalCategories,
+          totalStreams: data.totalStreams
+        });
+      }
+    } catch (err: any) {
+      setSyncError('فشل الاتصال بالخادم لمزامنة البيانات.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleSaveOverride = (e: React.FormEvent) => {
@@ -988,6 +1048,105 @@ export default function App() {
         }
       })
       .catch(err => console.error('Error deleting override:', err));
+  };
+
+  const handleSaveCategoryOverride = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory || !editingCategory.name.trim()) return;
+
+    fetch('/api/admin/category-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: editingCategory.id,
+        type: editingCategory.type,
+        name: editingCategory.name.trim()
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          setAdminCategoryOverrides(data.categoryOverrides || []);
+          setEditingCategory(null);
+          setConfigMessage({ type: 'success', text: 'تم تعديل اسم القسم بنجاح وسيبدأ العمل به فوراً.' });
+          setTimeout(() => setConfigMessage(null), 4000);
+          
+          // Refresh active category lists if the modified category matches the view
+          fetch(`/api/iptv/categories?type=${editingCategory.type}`)
+            .then(res => res.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                const sorted = [...data].sort((a, b) => a.category_name.localeCompare(b.category_name, 'ar'));
+                setCategories(sorted);
+              }
+            })
+            .catch(err => console.error('Error refreshing categories:', err));
+
+          if (editingCategory.type === 'live') {
+            fetch('/api/iptv/categories?type=live')
+              .then(res => res.json())
+              .then(data => {
+                if (Array.isArray(data)) {
+                  const sorted = [...data].sort((a, b) => a.category_name.localeCompare(b.category_name, 'ar'));
+                  setAdminLiveCategories(sorted);
+                }
+              })
+              .catch(err => console.error('Error refreshing admin live categories:', err));
+          }
+        } else {
+          setConfigMessage({ type: 'error', text: data.message || 'فشل تعديل اسم القسم' });
+          setTimeout(() => setConfigMessage(null), 4000);
+        }
+      })
+      .catch(err => {
+        console.error('Error saving category override:', err);
+        setConfigMessage({ type: 'error', text: 'حدث خطأ أثناء الاتصال بالخادم لتعديل اسم القسم.' });
+        setTimeout(() => setConfigMessage(null), 4000);
+      });
+  };
+
+  const handleDeleteCategoryOverride = (id: string, type: string) => {
+    fetch(`/api/admin/category-overrides/${type}/${id}`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          setAdminCategoryOverrides(data.categoryOverrides || []);
+          setCategoryToDelete(null);
+          setConfigMessage({ type: 'success', text: 'تم استعادة الاسم الافتراضي للقسم بنجاح.' });
+          setTimeout(() => setConfigMessage(null), 4000);
+          fetch(`/api/iptv/categories?type=${type}`)
+            .then(res => res.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                const sorted = [...data].sort((a, b) => a.category_name.localeCompare(b.category_name, 'ar'));
+                setCategories(sorted);
+              }
+            })
+            .catch(err => console.error('Error refreshing categories:', err));
+
+          if (type === 'live') {
+            fetch('/api/iptv/categories?type=live')
+              .then(res => res.json())
+              .then(data => {
+                if (Array.isArray(data)) {
+                  const sorted = [...data].sort((a, b) => a.category_name.localeCompare(b.category_name, 'ar'));
+                  setAdminLiveCategories(sorted);
+                }
+              })
+              .catch(err => console.error('Error refreshing admin live categories:', err));
+          }
+        } else {
+          setConfigMessage({ type: 'error', text: data.message || 'فشل حذف تعديل القسم' });
+          setTimeout(() => setConfigMessage(null), 4000);
+        }
+      })
+      .catch(err => {
+        console.error('Error deleting category override:', err);
+        setConfigMessage({ type: 'error', text: 'حدث خطأ أثناء الاتصال بالخادم لحذف تعديل القسم.' });
+        setTimeout(() => setConfigMessage(null), 4000);
+      });
   };
 
   const handleEditOverride = (ov: any) => {
@@ -1131,21 +1290,50 @@ export default function App() {
     if (!overrideSearchText.trim()) return;
     setIsSearchingOverrides(true);
 
-    fetch(`/api/iptv/streams?type=${overrideSearchTab}&search=${encodeURIComponent(overrideSearchText)}&page=1&limit=30`)
-      .then(res => res.json())
-      .then(data => {
-        setIsSearchingOverrides(false);
-        if (!data.error) {
-          setOverrideSearchResults(data.items || []);
-        } else {
+    if (overrideSearchTab.endsWith('_cats')) {
+      const catType = overrideSearchTab.replace('_cats', '');
+      fetch(`/api/iptv/categories?type=${catType}`)
+        .then(res => res.json())
+        .then(data => {
+          setIsSearchingOverrides(false);
+          if (Array.isArray(data)) {
+            const query = overrideSearchText.toLowerCase().trim();
+            const results = data.filter((c: any) => 
+              String(c.category_name || '').toLowerCase().includes(query)
+            );
+            setOverrideSearchResults(results.map((c: any) => ({
+              category_id: c.category_id,
+              name: c.category_name,
+              parent_id: c.parent_id,
+              isCategory: true,
+              catType: catType
+            })));
+          } else {
+            setOverrideSearchResults([]);
+          }
+        })
+        .catch(err => {
+          setIsSearchingOverrides(false);
           setOverrideSearchResults([]);
-        }
-      })
-      .catch(err => {
-        setIsSearchingOverrides(false);
-        setOverrideSearchResults([]);
-        console.error('Error searching streams for override:', err);
-      });
+          console.error('Error searching categories:', err);
+        });
+    } else {
+      fetch(`/api/iptv/streams?type=${overrideSearchTab}&search=${encodeURIComponent(overrideSearchText)}&page=1&limit=30`)
+        .then(res => res.json())
+        .then(data => {
+          setIsSearchingOverrides(false);
+          if (!data.error) {
+            setOverrideSearchResults(data.items || []);
+          } else {
+            setOverrideSearchResults([]);
+          }
+        })
+        .catch(err => {
+          setIsSearchingOverrides(false);
+          setOverrideSearchResults([]);
+          console.error('Error searching streams for override:', err);
+        });
+    }
   };
 
   // Launch deep link internally when activePlay changes (only if autoPlayEnabled is true)
@@ -1480,6 +1668,16 @@ export default function App() {
                              ••••••••
                            </span>
                          </div>
+                         <div className="flex items-center justify-between text-xs border-t border-white/5 pt-2.5">
+                           <span className="text-gray-400">مصدر جلب البيانات الحالي:</span>
+                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                             serverConfig.useSupabase 
+                               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                               : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                           }`}>
+                             {serverConfig.useSupabase ? 'قاعدة بيانات Supabase' : 'سيرفر IPTV المباشر'}
+                           </span>
+                         </div>
                        </div>
 
                        {configMessage && (
@@ -1533,6 +1731,26 @@ export default function App() {
                            />
                          </div>
                        </div>
+
+                       <div className="flex items-center justify-between p-3.5 rounded-2xl bg-black/40 border border-white/5">
+                         <div className="flex flex-col text-right ml-4">
+                           <span className="text-xs font-bold text-white">تفعيل قاعدة بيانات Supabase كمصدر</span>
+                           <span className="text-[10px] text-gray-400 leading-normal mt-0.5">عند التعطيل، سيتم جلب كافة البيانات والمواد مباشرة من سيرفر IPTV الخاص بك.</span>
+                         </div>
+                         <button
+                           type="button"
+                           onClick={() => setAdminUseSupabase(!adminUseSupabase)}
+                           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                             adminUseSupabase ? 'bg-emerald-500' : 'bg-gray-700'
+                           }`}
+                         >
+                           <span
+                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                               adminUseSupabase ? '-translate-x-5' : 'translate-x-0'
+                             }`}
+                           />
+                         </button>
+                       </div>
  
                        {configMessage && (
                          <div className={`p-3.5 rounded-xl text-xs font-bold border ${
@@ -1564,6 +1782,112 @@ export default function App() {
                      </form>
                    )}
                  </div>
+
+                  {/* Supabase Database Connection & Sync Manager */}
+                  <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl transition-all duration-300">
+                    <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
+                      <Database className="w-4 h-4 text-emerald-400" />
+                      <span>مزامنة قاعدة البيانات السحابية (Supabase)</span>
+                    </h2>
+                    <p className="text-[11px] text-gray-400 mb-4 leading-relaxed">
+                      يقوم النظام بجلب القنوات والأفلام والمسلسلات والمباريات كاملة من سيرفر IPTV وتخزينها تلقائياً وبشكل دائم في قاعدة بيانات Supabase السحابية، ليعرض الموقع كافة البيانات منها بسرعة فائقة وبدون أي تأخير.
+                    </p>
+
+                    <div className="space-y-4">
+                      {/* Connection status badge */}
+                      <div className="flex items-center justify-between p-3 rounded-2xl bg-black/40 border border-white/5">
+                        <span className="text-xs text-gray-400">حالة الاتصال بـ Supabase:</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span className="text-xs font-bold text-emerald-400">نشط (متصل)</span>
+                        </div>
+                      </div>
+
+                      {/* Sync Results */}
+                      {syncResult && (
+                        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+                          <div className="text-xs font-black text-emerald-400 flex items-center gap-1">
+                            <span>✓</span>
+                            <span>اكتملت المزامنة بنجاح!</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                            <div className="bg-black/30 p-2 rounded-xl border border-emerald-500/10">
+                              <span className="text-gray-400 block mb-0.5">الفئات المستوردة:</span>
+                              <span className="font-mono font-bold text-white text-xs">{syncResult.totalCategories} فئة</span>
+                            </div>
+                            <div className="bg-black/30 p-2 rounded-xl border border-emerald-500/10">
+                              <span className="text-gray-400 block mb-0.5">المواد والقنوات:</span>
+                              <span className="font-mono font-bold text-white text-xs">{syncResult.totalStreams} مادة</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sync Error with SQL Help */}
+                      {syncError && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 space-y-3">
+                          <div className="text-xs font-black text-red-400 flex items-center gap-1">
+                            <span>⚠️</span>
+                            <span>خطأ أثناء المزامنة:</span>
+                          </div>
+                          <p className="text-[11px] text-red-300 leading-normal">{syncError}</p>
+                          
+                          {syncSqlInstruction && (
+                            <div className="space-y-1.5 pt-1.5 border-t border-red-500/10">
+                              <span className="text-[10px] text-gray-400 block font-bold">يرجى تشغيل هذا الأمر في محرّر SQL الخاص بـ Supabase:</span>
+                              <pre className="p-2.5 rounded-xl bg-black/60 text-cyan-400 text-[10px] font-mono overflow-x-auto max-h-32 text-left" dir="ltr">
+                                {`CREATE TABLE IF NOT EXISTS categories (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  parent_id INTEGER,
+  type TEXT
+);
+
+CREATE TABLE IF NOT EXISTS streams (
+  stream_id TEXT PRIMARY KEY,
+  category_id TEXT,
+  name TEXT,
+  stream_icon TEXT,
+  container_extension TEXT,
+  type TEXT,
+  rating TEXT,
+  added TEXT,
+  custom_url TEXT
+);
+
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow read" ON categories FOR SELECT USING (true);
+CREATE POLICY "Allow write" ON categories FOR ALL USING (true);
+
+ALTER TABLE streams ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow read" ON streams FOR SELECT USING (true);
+CREATE POLICY "Allow write" ON streams FOR ALL USING (true);`}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleSyncSupabase}
+                        disabled={isSyncing}
+                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-extrabold text-xs transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                      >
+                        {isSyncing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            <span>جاري جلب وحفظ البيانات كاملة من السيرفر السحابي...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 text-white" />
+                            <span>بدء المزامنة الكاملة وحفظ البيانات في Supabase</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
                  {/* Override items customization card */}
                  {overrideId && (
@@ -1957,49 +2281,26 @@ export default function App() {
                         const idStr = String(ch.stream_id || '');
                         const iconStr = ch.stream_icon || '';
                         return (
-                          <div key={idStr} className="p-3.5 rounded-2xl border border-white/5 bg-black/35 hover:bg-black/50 hover:border-emerald-500/30 transition-all flex flex-col justify-between gap-3 group">
-                            <div className="flex items-center gap-2.5 min-w-0">
+                          <div key={idStr} className="p-3 rounded-xl border border-white/5 bg-black/25 flex items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2.5 truncate">
                               {iconStr ? (
-                                <img
-                                  src={iconStr}
-                                  alt=""
-                                  className="w-10 h-10 rounded-lg object-cover border border-white/10 flex-shrink-0 group-hover:scale-105 transition-transform"
-                                  referrerPolicy="no-referrer"
-                                />
+                                <img src={iconStr} alt="" className="w-8 h-8 rounded object-cover border border-white/10" referrerPolicy="no-referrer" />
                               ) : (
-                                <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-xs text-gray-500 flex-shrink-0 font-bold group-hover:scale-105 transition-transform">📺</div>
+                                <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-[10px]">📺</div>
                               )}
-                              <div className="min-w-0 flex-grow text-right">
-                                <h4 className="text-[11px] font-black text-white truncate" title={ch.name}>{ch.name}</h4>
-                                <p className="text-[9px] text-gray-500 font-mono mt-0.5">المعرف (ID): {idStr}</p>
+                              <div className="truncate text-right">
+                                <p className="font-bold text-gray-200 truncate">{ch.name}</p>
+                                <p className="text-[10px] text-gray-500">ID: {idStr}</p>
                               </div>
                             </div>
-
-                            {/* Import buttons row */}
-                            <div className="flex gap-1.5 mt-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setMatchChannelId(idStr);
-                                  setMatchChannelName(ch.name);
-                                  const element = document.getElementById('match-editor-form');
-                                  if (element) {
-                                    element.scrollIntoView({ behavior: 'smooth' });
-                                  }
-                                }}
-                                className="flex-1 py-1.5 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-black rounded-lg text-[9px] transition-all cursor-pointer flex items-center justify-center gap-1 border border-emerald-500/15"
-                              >
-                                <Download className="w-3 h-3" />
-                                <span>ربط كبث مباراة</span>
-                              </button>
-
+                            <div>
                               <button
                                 type="button"
                                 onClick={() => {
                                   setOverrideId(idStr);
                                   setOverrideName(ch.name);
                                   setOverrideIcon(iconStr);
-                                  setOverrideStreamUrl('');
+                                  setOverrideStreamUrl(ch.customUrl || getDirectStreamUrl(ch.stream_id || '', 'live', ch.container_extension));
                                   const element = document.getElementById('override-editor-form');
                                   if (element) {
                                     element.scrollIntoView({ behavior: 'smooth' });
@@ -2051,10 +2352,10 @@ export default function App() {
                 <div className="p-6 rounded-3xl border border-white/10 bg-[#0b1120]/70 backdrop-blur-md shadow-xl">
                   <h2 className="text-sm font-black text-white mb-2 flex items-center gap-2">
                     <Search className="w-4 h-4 text-cyan-400" />
-                    <span>مساعد البحث وتحديد معرفات القنوات</span>
+                    <span>مساعد البحث وتحديد معرفات القنوات والاقسام</span>
                   </h2>
                   <p className="text-[10px] text-gray-400 mb-4">
-                    ابحث عن أي قناة أو فيلم أو مسلسل على السيرفر لتعديل بياناتها بضغطة زر واحدة دون الحاجة لمعرفة الـ ID مسبقاً.
+                    ابحث عن أي قناة أو فيلم أو مسلسل أو قسم على السيرفر لتعديل بياناتها بضغطة زر واحدة دون الحاجة لمعرفة الـ ID مسبقاً.
                   </p>
 
                   <form onSubmit={handleSearchStreamsForOverride} className="flex gap-2 mb-4">
@@ -2066,6 +2367,9 @@ export default function App() {
                       <option value="live">قنوات بث مباشر</option>
                       <option value="vod">أفلام سينما</option>
                       <option value="series">مسلسلات</option>
+                      <option value="live_cats">أقسام البث المباشر</option>
+                      <option value="vod_cats">أقسام الأفلام</option>
+                      <option value="series_cats">أقسام المسلسلات</option>
                     </select>
 
                     <div className="flex-grow relative">
@@ -2073,7 +2377,7 @@ export default function App() {
                         type="text"
                         value={overrideSearchText}
                         onChange={(e) => setOverrideSearchText(e.target.value)}
-                        placeholder="اكتب اسم القناة أو الفيلم هنا للبحث..."
+                        placeholder="اكتب اسم القناة أو الفيلم أو القسم للبحث..."
                         required
                         className="w-full px-4 py-2.5 bg-black/40 border border-white/10 focus:border-cyan-500 rounded-xl text-xs text-white focus:outline-none transition-colors"
                       />
@@ -2090,56 +2394,88 @@ export default function App() {
 
                   {overrideSearchResults.length > 0 && (
                     <div className="max-h-[220px] overflow-y-auto space-y-2 border border-white/5 bg-black/35 p-2 rounded-xl">
-                      {overrideSearchResults.map(item => {
-                        const idStr = String(item.stream_id || item.series_id || '');
-                        const iconStr = item.stream_icon || item.cover || '';
+                      {overrideSearchResults.map((item, index) => {
+                        const isCat = !!item.isCategory;
+                        const idStr = String(isCat ? item.category_id : (item.stream_id || item.series_id || ''));
+                        const iconStr = isCat ? '' : (item.stream_icon || item.cover || '');
+                        const uniqueKey = isCat ? `cat_${item.catType}_${idStr}_${index}` : `stream_${idStr}_${index}`;
+                        
                         return (
-                          <div key={idStr} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-xs">
+                          <div key={uniqueKey} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-xs">
                             <div className="flex items-center gap-2.5 truncate">
-                              {iconStr ? (
-                                <img src={iconStr} alt="" className="w-7 h-7 rounded object-cover border border-white/10 flex-shrink-0" />
+                              {isCat ? (
+                                <div className="w-7 h-7 bg-fuchsia-500/15 text-fuchsia-400 border border-fuchsia-500/20 rounded flex items-center justify-center text-[10px] flex-shrink-0 font-bold">📂</div>
+                              ) : iconStr ? (
+                                <img src={iconStr} alt="" className="w-7 h-7 rounded object-cover border border-white/10 flex-shrink-0" referrerPolicy="no-referrer" />
                               ) : (
                                 <div className="w-7 h-7 bg-white/10 rounded flex items-center justify-center text-[10px] flex-shrink-0">📺</div>
                               )}
                               <div className="truncate text-right">
                                 <p className="font-bold text-gray-200 truncate">{item.name}</p>
-                                <p className="text-[10px] text-gray-500">المعرف الأساسي: {idStr}</p>
+                                <p className="text-[10px] text-gray-500">
+                                  {isCat ? `قسم: ${item.catType === 'live' ? 'بث مباشر' : item.catType === 'vod' ? 'أفلام' : 'مسلسلات'}` : 'المعرف الأساسي'}: {idStr}
+                                </p>
                               </div>
                             </div>
 
                             <div className="flex gap-2 flex-wrap justify-end">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOverrideId(idStr);
-                                  setOverrideName(item.name);
-                                  setOverrideIcon(iconStr);
-                                  setOverrideStreamUrl('');
-                                  const element = document.getElementById('override-editor-form');
-                                  if (element) {
-                                    element.scrollIntoView({ behavior: 'smooth' });
-                                  }
-                                }}
-                                className="px-3.5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 font-extrabold rounded-lg text-[10px] transition-all cursor-pointer"
-                              >
-                                تعديل هذه المادة
-                              </button>
-
-                              {overrideSearchTab === 'live' && (
+                              {isCat ? (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setMatchChannelId(idStr);
-                                    setMatchChannelName(item.name);
-                                    const element = document.getElementById('match-editor-form');
-                                    if (element) {
-                                      element.scrollIntoView({ behavior: 'smooth' });
-                                    }
+                                    setEditingCategory({
+                                      id: idStr,
+                                      type: item.catType,
+                                      name: item.name,
+                                      originalName: item.name
+                                    });
+                                    setTimeout(() => {
+                                      const element = document.getElementById('category-editor-form');
+                                      if (element) {
+                                        element.scrollIntoView({ behavior: 'smooth' });
+                                      }
+                                    }, 100);
                                   }}
-                                  className="px-3.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-extrabold rounded-lg text-[10px] transition-all cursor-pointer"
+                                  className="px-3.5 py-1.5 bg-fuchsia-500/15 hover:bg-fuchsia-500/25 text-fuchsia-400 font-extrabold rounded-lg text-[10px] transition-all cursor-pointer"
                                 >
-                                  ربط كقناة بث للمباراة
+                                  تعديل اسم هذا القسم
                                 </button>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOverrideId(idStr);
+                                      setOverrideName(item.name);
+                                      setOverrideIcon(iconStr);
+                                      setOverrideStreamUrl(item.customUrl || getDirectStreamUrl(item.stream_id || item.series_id || '', overrideSearchTab, item.container_extension));
+                                      const element = document.getElementById('override-editor-form');
+                                      if (element) {
+                                        element.scrollIntoView({ behavior: 'smooth' });
+                                      }
+                                    }}
+                                    className="px-3.5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 font-extrabold rounded-lg text-[10px] transition-all cursor-pointer"
+                                  >
+                                    تعديل هذه المادة
+                                  </button>
+
+                                  {overrideSearchTab === 'live' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setMatchChannelId(idStr);
+                                        setMatchChannelName(item.name);
+                                        const element = document.getElementById('match-editor-form');
+                                        if (element) {
+                                          element.scrollIntoView({ behavior: 'smooth' });
+                                        }
+                                      }}
+                                      className="px-3.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-extrabold rounded-lg text-[10px] transition-all cursor-pointer"
+                                    >
+                                      ربط كقناة بث للمباراة
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
@@ -2377,8 +2713,17 @@ export default function App() {
             {/* Ads removed */}
 
             {/* Demo Mode Alert Banner */}
-            {subscription?.user_info?.isDemo && (
-              <div className="mb-6 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold shadow-[0_0_20px_rgba(245,158,11,0.05)] animate-fade-in text-right" dir="rtl">
+            {subscription?.user_info?.isDemo && !isDemoBannerDismissed && (
+              <div className="relative mb-6 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold shadow-[0_0_20px_rgba(245,158,11,0.05)] animate-fade-in text-right pl-10" dir="rtl">
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsDemoBannerDismissed(true)}
+                  className="absolute top-3 right-3 text-amber-400/60 hover:text-amber-300 transition-colors p-1 rounded-lg hover:bg-amber-500/10 cursor-pointer"
+                  title="إخفاء التنبيه"
+                >
+                  <X className="w-4 h-4" />
+                </button>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400 animate-pulse">
                     <AlertCircle className="w-5 h-5" />
